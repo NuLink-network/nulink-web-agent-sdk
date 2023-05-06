@@ -34,7 +34,7 @@ When the API call returns, the callback function is called with the responseData
 - connect
 
 
-  ```connect``` is used for handling login functionality for an external resource. It opens a new window for the user to complete the login process, and then executes the callBackFunc with the login data when the login is successful.
+  ```connect``` is used for handling login functionality for nulink web agent. It opens a new window for the user to complete the login process, and then executes the callBackFunc with the login data when the login is successful.
 
 ```typescript
 import { connect } from "@nulink_network/nulink-web-agent-access-sdk"
@@ -97,7 +97,7 @@ uploadResponseData : {
 - apply
 
 
-  ```apply``` takes two parameters: applyInfo, which is an object containing information about the file to be applied for, and callBackFunc, which is the callback function to be executed after the application is successful.
+  ```apply``` The apply function is used for applying for filestakes, takes two parameters: applyInfo, which is an object containing information about the file to be applied for, and callBackFunc, which is the callback function to be executed after the application is successful.
   
 ```typescript
 import { upload } from "@nulink_network/nulink-web-agent-access-sdk"
@@ -136,7 +136,7 @@ applyResponseData : {
 
 - approve
 
-  ```approve```takes six parameters: applyId, applyUserId, applyUserAddress, days, remark, and callBackFunc.
+  ```approve```is used for approving files, takes six parameters: applyId, applyUserId, applyUserAddress, days, remark, and callBackFunc.
   
 ```typescript
 const approveSubmit = async () => {
@@ -169,7 +169,9 @@ approveResponseData : {
 ```
 - download
 
-```download```takes four parameters:
+The fileDownload API provides the function of downloading files.
+
+takes four parameters:
 - fileId (a string): The ID of the file to be downloaded.
 - fileName (a string): The name of the file to be downloaded.
 - applyUserAddress (a string): The address of the user who has applied to download the file.
