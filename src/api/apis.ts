@@ -15,11 +15,16 @@ import { decrypt as aesDecryt } from "../utils/crypto";
 export const cache_user_key: string = "userinfo";
 
 export const connect = async (callBackFunc:CallBackFunc) => {
-    window.open(nulink_agent_config.address + "/guide?from=outside&redirectUrl=" + document.location.toString())
-    window.addEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
+    if(nulink_agent_config.address){
+        window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/guide?from=outside&redirectUrl=" + document.location.toString())
+        window.addEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
+    } else {
+        throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
+    }
 }
 
 type CallBackFunc =  ( responseData?:any ) => Promise<any>;
+
 
 const loginSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     const data:loginResponseData = e.data
@@ -44,17 +49,17 @@ export const checkReLogin = async (responseData: any) => {
 
 export const upload = async (callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
-    if (!!userInfo) {
-        const queryData: requisiteQueryData = {
-            accountAddress: userInfo.accountAddress,
-            accountId: userInfo.accountId,
-            redirectUrl: document.location.toString()
-        };
+    const queryData: requisiteQueryData = {
+        accountAddress: userInfo.accountAddress,
+        accountId: userInfo.accountId,
+        redirectUrl: document.location.toString()
+    };
+    if (nulink_agent_config.address){
         window.open(
-            nulink_agent_config.address + "/upload-file?from=outside&data=" +
+            nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/upload-file?from=outside&data=" +
             encodeURIComponent(JSON.stringify(queryData)))
     } else {
-        window.open(nulink_agent_config.address + "/upload-file?from=outside");
+        throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
     }
     window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
 }
@@ -85,10 +90,14 @@ export const apply = async (applyInfo: ApplyInfo, callBackFunc:CallBackFunc) => 
             user: userInfo.accountAddress,
             days: applyInfo.usageDays,
         };
-        window.open(
-            nulink_agent_config.address + "/request-files?from=outside&data=" +
-            encodeURIComponent(JSON.stringify(applyParam))
-        );
+        if (nulink_agent_config.address){
+            window.open(
+                nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/request-files?from=outside&data=" +
+                encodeURIComponent(JSON.stringify(applyParam))
+            );
+        } else {
+            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
+        }
         window.addEventListener("message", applySuccessHandler.bind(this, callBackFunc));
     } else {
         throw new Error("Unlink user information not found, please log in first")
@@ -128,11 +137,14 @@ export const approve = async (applyId:string,
             days: days,
             remark: remark
         };
-
-        window.open(
-            nulink_agent_config.address + "/approve?from=outside&data=" +
-            encodeURIComponent(JSON.stringify(approveParam))
-        );
+        if (nulink_agent_config.address) {
+            window.open(
+                nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/approve?from=outside&data=" +
+                encodeURIComponent(JSON.stringify(approveParam))
+            );
+        } else {
+            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
+        }
         window.addEventListener("message", approveSuccessHandler.bind(this, callBackFunc));
     }
 };
@@ -170,7 +182,11 @@ export const download = async (fileId:string, fileName:string, applyUserAddress:
             to: applyUserAddress,
             publicKey: publicKey
         }
-        window.open(nulink_agent_config.address + "/request-authorization?from=outside&data=" + encodeURIComponent(JSON.stringify(decryptionRequestData)))
+        if (nulink_agent_config.address) {
+            window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/request-authorization?from=outside&data=" + encodeURIComponent(JSON.stringify(decryptionRequestData)))
+        } else {
+            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
+        }
         window.addEventListener("message", authorizationSuccessHandler.bind(this, callBackFunc))
     }
 };
