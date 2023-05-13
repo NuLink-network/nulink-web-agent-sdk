@@ -2,8 +2,8 @@ import Axios, { AxiosRequestConfig, AxiosRequestHeaders } from "axios";
 import axiosRetry from "axios-retry";
 import {nulink_agent_config} from "../config";
 
-const username = process.env.REACT_APP_SERVER_USERNAME;
-const password = process.env.REACT_APP_SERVER_PASSWORD;
+const username = process.env.REACT_APP_SERVER_USERNAME || 'nulink';
+const password = process.env.REACT_APP_SERVER_PASSWORD || 'privacyshareisgood';
 
 function authRequestInterceptor(config: AxiosRequestConfig) {
   const token = Buffer.from(`${username}:${password}`, "utf8").toString(
