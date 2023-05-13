@@ -11,6 +11,7 @@ import {
 import { getKeyPair, privateKeyDecrypt } from "../utils/rsautil";
 import { encrypt, decrypt } from "./passwordEncryption";
 import { decrypt as aesDecryt } from "../utils/crypto";
+import axios from "axios";
 
 export const cache_user_key: string = "userinfo";
 
@@ -24,6 +25,11 @@ export const connect = async (callBackFunc:CallBackFunc) => {
 }
 
 type CallBackFunc =  ( responseData?:any ) => Promise<any>;
+
+type FileData = {
+    list: any[];
+    total: number;
+}
 
 
 const loginSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
@@ -215,4 +221,31 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
     }
 }
 
+export const getFileList = async (
+    accountId:string, include:boolean, desc:boolean = false, pageNum:number, pageSize:number
+): Promise<FileData> => {
+    let result = await axios.post(nulink_agent_config.backend_address + '/file/others-list', {account_id: accountId, include: include, desc:desc, paginate: {page: pageNum, page_size: pageSize}})
+    return result.data
+};
 
+export const getFileDetail = async (
+    fileId: string,
+    fileUserAccountId: string
+): Promise<FileData> => {
+    let result = await axios.post(nulink_agent_config.backend_address + '/file/detail', {consumer_id: fileUserAccountId, file_id: fileId})
+    return result.data
+};
+
+export const getSendApplyFiles = async (proposerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
+    let result =  await axios.post(nulink_agent_config.backend_address + '/apply/list', {
+        proposer_id: proposerId, status: status, paginate: {page: pageNum, page_size: pageSize}
+    })
+    return result.data
+}
+
+export const getIncomingApplyFiles = async (fileOwnerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
+    let result = await axios.post(nulink_agent_config.backend_address + '/apply/list', {
+        file_owner_id: fileOwnerId, status: status, paginate: {page: pageNum, page_size: pageSize}
+    })
+    return result.data
+}
