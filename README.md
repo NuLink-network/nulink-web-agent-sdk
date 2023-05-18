@@ -318,7 +318,7 @@ get file details
 
 #### Parameters
 - fileId - string: the file id
-- fileUserAccountId - string: 
+- fileUserAccountId - string: The file user's account ID, which refers to the current user's account ID.
 
 #### Returns
 ```typescript
