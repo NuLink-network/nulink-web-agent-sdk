@@ -11,7 +11,7 @@ import {
 import { getKeyPair, privateKeyDecrypt } from "../utils/rsautil";
 import { encrypt, decrypt } from "./passwordEncryption";
 import { decrypt as aesDecryt } from "../utils/crypto";
-import axios from "axios";
+import { axios } from "../utils/axios";
 
 export const cache_user_key: string = "userinfo";
 
