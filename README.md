@@ -7,6 +7,17 @@ Welcome to the API documentation for Nulink Web Agent. These APIs allow you to a
 
 ## How to Use
 
+### Getting Started
+
+The default web agent address in the Nulink Web Agent Access SDK is: https://agent.testnet.nulink.org, and the default backend service address is: https://agent-integration-demo.nulink.org/bk. If you need to change these two addresses, you will need to write the following configurations in the .env file of your project: REACT_APP_NULINK_AGENT_ADDRESS for the web agent address and REACT_APP_NULINK_BACKEND_ADDRESS for the backend service address.
+
+```
+// modify .env in your project
+// the web agent address
+REACT_APP_NULINK_AGENT_ADDRESS=xxxxxx
+// the agent bcakend service address
+REACT_APP_NULINK_BACKEND_ADDRESS=xxxxxx
+```
 ### Install
 ```bash
 npm i @nulink_network/nulink-web-agent-access-sdk
@@ -38,15 +49,15 @@ type CallBackFunc =  ( responseData?:any ) => Promise<any>;
   ```connect``` is used for handling login functionality for nulink web agent. It opens a new window for the user to complete the login process, and then executes the callBackFunc with the login data when the login is successful.
 
 #### Parameters
-- Promise - CallBackFunc : A callback function that will be called with the response data from the server.
+- Promise : CallBackFunc - A callback function that will be called with the response data from the server.
 
 #### Returns
 
 ```
 {
-    accountAddress: string
-    accountId: string
-    action: 'login'
+    accountAddress: string - the address of the logged-in user
+    accountId: string - the ID of the logged-in user
+    action: 'login' - the action type
     result: string
     redirectUrl: string
 }
@@ -79,13 +90,13 @@ upload(callBackFunc:CallBackFunc)
 ```upload```used for uploading files and executing a callback function after the upload is successful
 
 #### Parameters
-- Promise - CallBackFunc : A callback function that will be called with the response data from the server.
+- Promise : CallBackFunc - A callback function that will be called with the response data from the server.
 
 #### Returns
 ```
  {
-    accountAddress: string
-    accountId: string
+    accountAddress: string - the address of the logged-in user
+    accountId: string - the ID of the logged-in user
     action: 'upload'
     subAction?: string
     result: string
@@ -120,21 +131,21 @@ apply(fileCreatorAddress:string, fileId:string, fileName:string, usageDays: stri
   ```apply``` The apply function is used for applying for files, takes four parameters: fileCreatorAddress,fileId,fileName,usageDays and callBackFunc, which is the callback function to be executed after the application is successful.
 
 #### Parameters
-- fileCreatorAddress - string: The file creator Address
-- fileId - string: The file id
-- fileName - string: The file name
-- usageDays - string: The number of days applied
-- Promise - CallBackFunc : A callback function that will be called with the response data from the server.
+- fileCreatorAddress : string - The file creator Address
+- fileId : string - The file id
+- fileName : string - The file name
+- usageDays : string - The number of days applied
+- Promise : CallBackFunc - A callback function that will be called with the response data from the server.
 
 #### Returns
 ```
 {
-    accountAddress: string
-    accountId: string
+    accountAddress: string - the address of the logged-in user
+    accountId: string - the ID of the logged-in user
     action: 'apply'
     subAction?: string
-    owner: string
-    user: string
+    owner: string - the file owner's address
+    user: string - the file requester's address
     result: string
     redirectUrl: string
 }
@@ -170,23 +181,23 @@ approve(applyId:string,
 
   ```approve```is used for approving files, takes six parameters: applyId, applyUserId, applyUserAddress, days, remark, and callBackFunc.
 #### Parameters
-- applyId - string: the application ID
-- applyUserId - string: the application user id
-- applyUserAddress - string: the application user address
-- days -string: the application days
-- remark - string: the remark
-- Promise - CallBackFunc : A callback function that will be called with the response data from the server.
+- applyId : string - the application ID
+- applyUserId : string - the application user id
+- applyUserAddress : string - the application user address
+- days : string - the application days
+- remark : string - the remark
+- Promise : CallBackFunc - A callback function that will be called with the response data from the server.
 
 #### Returns
-```typescript
+```
 {
-    accountAddress: string
-    accountId: string
+    accountAddress: string - the address of the logged-in user
+    accountId: string - the Id of the logged-in user
     action: string
     subAction?: string
-    from: string
-    to: string
-    applyId: string
+    from: string - the file owner's address
+    to: string - the file requester's address
+    applyId: string - the apply id
     result: string
     redirectUrl: string
 }
@@ -218,22 +229,22 @@ The fileDownload API provides the function of downloading files.
 
 #### Parameters
 
-- fileId - string: The ID of the file to be downloaded.
-- fileName - string: The name of the file to be downloaded.
-- applyUserAddress - string: The address of the user who has applied to download the file.
-- Promise - CallBackFunc: A callback function that will be called with the response data from the server.
+- fileId : string - The ID of the file to be downloaded.
+- fileName : string - The name of the file to be downloaded.
+- applyUserAddress : string - The address of the user who has applied to download the file.
+- Promise : CallBackFunc - A callback function that will be called with the response data from the server.
 
 #### Returns
 ```
 {
-  accountAddress: string
-  accountId: string
-  fileName: string
+  accountAddress: string - the address of the logged-in user
+  accountId: string - the Id of the logged-in user
+  fileName: string - the request file name
   action: 'decrypted'
   subAction?: string
   result: string
   redirectUrl: string
-  url?: string
+  url?: string - the file ipfs address
 }
 ```
 
@@ -272,11 +283,11 @@ getFileDetail(accountId:string, include:boolean, desc:boolean = false, pageNum:n
 Get the list of files belonging to other users.
 
 #### Parameters
-- accountId - string: ID of the currently logged-in user
-- include - boolean: If include=false, exclude the files belonging to the current account; otherwise, the files belonging to the current user will be placed at the beginning of the list.
-- desc - boolean: Whether to sort in descending order by upload time
-- pageNum - number: page number (starting from 1)
-- pageSize - number: page size
+- accountId : string - ID of the currently logged-in user
+- include : boolean - If include=false, exclude the files belonging to the current account; otherwise, the files belonging to the current user will be placed at the beginning of the list.
+- desc : boolean - Whether to sort in descending order by upload time
+- pageNum : number - page number (starting from 1)
+- pageSize : number - page size
 
 #### Returns
 ```typescript
@@ -317,8 +328,8 @@ getFileDetail(fileId:string, fileUserAccountId:string)
 get file details
 
 #### Parameters
-- fileId - string: the file id
-- fileUserAccountId - string: The file user's account ID, which refers to the current user's account ID.
+- fileId : string - the file id
+- fileUserAccountId : string - The file user's account ID, which refers to the current user's account ID.
 
 #### Returns
 ```typescript
@@ -329,10 +340,10 @@ get file details
     creator: string - Owner of the file (policy creator)
     creator_id: string - Owner ID of the file (policy creator ID)
     creator_avatar: string - Owner avatar of the file (policy creator avatar)
-    creator_address: string - Ethereum address of the file owner (policy creator's Ethereum address)
+    creator_address: string - Ethereum address of the file owner (policy creator's address)
     file_created_at: number - File upload timestamp
     apply_id: number - Application record ID
-    proposer_address: string - Ethereum address of the file user (policy user's Ethereum address)
+    proposer_address: string - Ethereum address of the file user (policy user's address)
     status: number - Application status, 0: not applied, 1: applying, 2: approved, 3: rejected
     apply_start_at: string - Application start timestamp (policy start timestamp)
     apply_end_at: string - Application end timestamp (policy end timestamp)
@@ -384,10 +395,10 @@ Function to fetch send application files
     apply_id: number - Application record ID
     proposer: string - Applicant name
     proposer_id: string - Applicant account ID
-    proposer_address: string - Applicant's Ethereum address
+    proposer_address: string - Applicant's address
     file_owner: string - File owner name
     file_owner_id: string - File owner account ID
-    file_owner_address: string - File owner's Ethereum address
+    file_owner_address: string - File owner's address
     status: number - Application status, 1: applying, 2: approved, 3: rejected
     remark: string - Approval comment or remark
     start_at: number - Application start timestamp
