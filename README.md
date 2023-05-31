@@ -206,6 +206,8 @@ approve(applyId:string,
 #### Example
 
 ```typescript
+import { approve } from "@nulink_network/nulink-web-agent-access-sdk"
+
 const approveSubmit = async () => {
     await approve(applyId, userAccountId, currentRecord.proposer_address, currentRecord.days, currentRecord.remark, async () => {
       if (responseData) {
@@ -251,6 +253,8 @@ The fileDownload API provides the function of downloading files.
 #### Example
 
 ```typescript
+import { download }  from "@nulink_network/nulink-web-agent-access-sdk"
+
 const fileDownload = async () => {
     await download(detailItem.file_id,detailItem.file_name, detailItem.file_owner_address, fileDownloadCallBack);
   };
@@ -311,6 +315,8 @@ Get the list of files belonging to other users.
 
 #### Example
 ```typescript
+import { getFileList }  from "@nulink_network/nulink-web-agent-access-sdk"
+
 const pageChange = async () => {
     let result = await getFileList(
         accountId, include, desc, pageNum, pageSize
@@ -364,6 +370,8 @@ get file details
 
 #### Example
 ```typescript
+import { getFileDetail }  from "@nulink_network/nulink-web-agent-access-sdk"
+
 const _getFileDetail = async () => {
     let result = await getFileDetail(
         fileId, fileUserAccountId
@@ -412,6 +420,8 @@ Function to fetch send application files
 
 #### Example
 ```typescript
+import { getSendApplyFiles }  from "@nulink_network/nulink-web-agent-access-sdk"
+
 const _getSendApplyFiles = async () => {
     let result = await getSendApplyFiles(
         proposerId, status, pageNum, pageSize
@@ -460,6 +470,8 @@ Function to fetch the received application files
 
 #### Example
 ```typescript
+import { getIncomingApplyFiles }  from "@nulink_network/nulink-web-agent-access-sdk"
+
 const _getIncomingApplyFiles = async () => {
     let result = await getIncomingApplyFiles(
         proposerId, status, pageNum, pageSize
