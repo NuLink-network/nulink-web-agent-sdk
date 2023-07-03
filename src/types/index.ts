@@ -1,8 +1,15 @@
+export enum ChainId {
+    BSC_MAINNET = 56,
+    BSC_TESTNET = 97,
+    CONFLUX_MAINNET = 1030,
+    CONFLUX_TESTNET = 71
+}
 
 export type requisiteQueryData = {
     accountAddress: string | null
     accountId: string | null
     redirectUrl: string
+    chainId: number
 }
 
 export type decryptionRequestData = {
@@ -14,6 +21,7 @@ export type decryptionRequestData = {
     from: string
     to: string
     publicKey: string
+    chainId: number
 }
 
 export type applyRequestData = {
@@ -25,6 +33,7 @@ export type applyRequestData = {
     owner: string
     user: string
     days: number
+    chainId: number
 }
 
 export type approveRequestData = {
@@ -38,6 +47,19 @@ export type approveRequestData = {
     days: string
     remark: string
     userAccountId: string
+    chainId: number
+}
+
+export type batchApproveRequestData = {
+    accountAddress: string | null
+    accountId: string | null
+    redirectUrl: string
+    sourceUrl: string
+    from: string | null
+    to?: string | null
+    applyIds: string []
+    days: string []
+    chainId: number
 }
 
 
@@ -54,8 +76,7 @@ export type approveResponseData = {
     action: string
     subAction?: string
     from: string
-    to: string
-    applyId: string
+    applyIds: string[]
     result: string
     redirectUrl: string
 }
@@ -83,6 +104,7 @@ export type applyResponseData = {
 export type loginResponseData = {
     accountAddress: string
     accountId: string
+    chainId: string
     action: string
     result: string
     redirectUrl: string

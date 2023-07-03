@@ -3,7 +3,7 @@ import storage from "../utils/storage";
 import {
     ApplyInfo,
     applyRequestData,
-    approveRequestData,
+    batchApproveRequestData,
     decryptionRequestData,
     loginResponseData,
     requisiteQueryData
@@ -14,6 +14,7 @@ import { decrypt as aesDecryt } from "../utils/crypto";
 import { axios } from "../utils/axios";
 
 export const cache_user_key: string = "userinfo";
+export const cache_chain_id: string = "chain_id";
 
 export const connect = async (callBackFunc:CallBackFunc) => {
     if(nulink_agent_config.address){
@@ -37,6 +38,7 @@ const loginSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     if (data) {
         if (data.action == 'login' && data.result == 'success') {
             await storage.setItem(cache_user_key, data);
+            await storage.setItem(cache_chain_id, data.chainId);
             await callBackFunc(data)
             window.removeEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
         }
@@ -53,12 +55,24 @@ export const checkReLogin = async (responseData: any) => {
     }
 }
 
+export const checkNetWork = async (responseData: any) => {
+    if (responseData && responseData.subAction && responseData.subAction == "relogin") {
+        const userInfo = {
+            accountAddress: responseData.accountAddress,
+            accountId: responseData.accountId
+        };
+        storage.setItem(cache_user_key, JSON.stringify(userInfo));
+    }
+}
+
 export const upload = async (callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
+    const _chainId = await storage.getItem(cache_chain_id);
     const queryData: requisiteQueryData = {
         accountAddress: userInfo.accountAddress,
         accountId: userInfo.accountId,
-        redirectUrl: document.location.toString()
+        redirectUrl: document.location.toString(),
+        chainId: _chainId
     };
     if (nulink_agent_config.address){
         window.open(
@@ -82,7 +96,8 @@ const uploadSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
 };
 
 export const apply = async (applyInfo: ApplyInfo, callBackFunc:CallBackFunc) => {
-    const userInfo = storage.getItem(cache_user_key);
+    const userInfo = await storage.getItem(cache_user_key);
+    const _chainId = await storage.getItem(cache_chain_id);
     const agentAccountAddress = userInfo.accountAddress;
     const agentAccountId = userInfo.accountId;
     if (agentAccountAddress && agentAccountId) {
@@ -95,6 +110,7 @@ export const apply = async (applyInfo: ApplyInfo, callBackFunc:CallBackFunc) => 
             owner: applyInfo.fileCreatorAddress,
             user: userInfo.accountAddress,
             days: applyInfo.usageDays,
+            chainId: _chainId
         };
         if (nulink_agent_config.address){
             window.open(
@@ -121,27 +137,56 @@ const applySuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     }
 }
 
-export const approve = async (applyId:string,
-                              applyUserId:string,
-                              applyUserAddress:string,
-                              days:string,
-                              remark:string,
+export const batchApprove = async (applyList:[{applyId : string,days : string}],
                               callBackFunc:CallBackFunc) => {
-    const userInfo = storage.getItem("userinfo");
+    const applyIds: string [] = applyList.map((item) => item.applyId)
+    const days: string [] = applyList.map((item) => item.days)
+    const userInfo = await storage.getItem(cache_user_key);
+    const _chainId = await storage.getItem(cache_chain_id);
     const agentAccountAddress = userInfo.accountAddress;
     const agentAccountId = userInfo.accountId;
     if (agentAccountAddress && agentAccountId) {
-        const approveParam: approveRequestData = {
+        const approveParam: batchApproveRequestData = {
             accountAddress: agentAccountAddress,
             accountId: agentAccountId,
-            userAccountId: applyUserId,
+            redirectUrl: document.location.toString(),
+            sourceUrl: document.domain,
+            from: agentAccountAddress,
+            applyIds: applyIds,
+            days: days,
+            chainId: _chainId
+        };
+        if (nulink_agent_config.address) {
+            window.open(
+                nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/approve?from=outside&data=" +
+                    encodeURIComponent(JSON.stringify(approveParam))
+            );
+        } else {
+            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
+        }
+        window.addEventListener("message", approveSuccessHandler.bind(this, callBackFunc));
+    }
+};
+
+export const approve = async (applyId:string,
+                              applyUserAddress:string,
+                              days:string,
+                              callBackFunc:CallBackFunc) => {
+    const userInfo = await storage.getItem(cache_user_key);
+    const _chainId = await storage.getItem(cache_chain_id);
+    const agentAccountAddress = userInfo.accountAddress;
+    const agentAccountId = userInfo.accountId;
+    if (agentAccountAddress && agentAccountId) {
+        const approveParam: batchApproveRequestData = {
+            accountAddress: agentAccountAddress,
+            accountId: agentAccountId,
             redirectUrl: document.location.toString(),
             sourceUrl: document.domain,
             from: agentAccountAddress,
             to: applyUserAddress,
-            applyId: applyId,
-            days: days,
-            remark: remark
+            applyIds: [applyId],
+            days: [days],
+            chainId: _chainId
         };
         if (nulink_agent_config.address) {
             window.open(
@@ -174,6 +219,7 @@ export const download = async (fileId:string, fileName:string, applyUserAddress:
     const encryptedKeypair = encrypt(JSON.stringify(keypair));
     await localStorage.setItem('encryptedKeypair', encryptedKeypair)
     const userInfo = storage.getItem("userinfo");
+    const _chainId = await storage.getItem(cache_chain_id);
     const agentAccountAddress = userInfo.accountAddress
     const agentAccountId = userInfo.accountId
 
@@ -186,7 +232,8 @@ export const download = async (fileId:string, fileName:string, applyUserAddress:
             fileName: fileName,
             from: agentAccountAddress,
             to: applyUserAddress,
-            publicKey: publicKey
+            publicKey: publicKey,
+            chainId: _chainId
         }
         if (nulink_agent_config.address) {
             window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/request-authorization?from=outside&data=" + encodeURIComponent(JSON.stringify(decryptionRequestData)))
@@ -232,20 +279,24 @@ export const getFileDetail = async (
     fileId: string,
     fileUserAccountId: string
 ): Promise<FileData> => {
-    let result = await axios.post(nulink_agent_config.backend_address + '/file/detail', {consumer_id: fileUserAccountId, file_id: fileId})
+    const _chainId = await storage.getItem(cache_chain_id);
+    let result = await axios.post(nulink_agent_config.backend_address + '/file/detail', {consumer_id: fileUserAccountId, file_id: fileId, chain_id: _chainId})
     return result.data
 };
 
 export const getSendApplyFiles = async (proposerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
+    const _chainId = await storage.getItem(cache_chain_id);
     let result =  await axios.post(nulink_agent_config.backend_address + '/apply/list', {
-        proposer_id: proposerId, status: status, paginate: {page: pageNum, page_size: pageSize}
+        proposer_id: proposerId, status: status, paginate: {page: pageNum, page_size: pageSize}, chain_id: _chainId
     })
     return result.data
 }
 
 export const getIncomingApplyFiles = async (fileOwnerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
+    const _chainId = await storage.getItem(cache_chain_id);
     let result = await axios.post(nulink_agent_config.backend_address + '/apply/list', {
-        file_owner_id: fileOwnerId, status: status, paginate: {page: pageNum, page_size: pageSize}
+        file_owner_id: fileOwnerId, status: status, paginate: {page: pageNum, page_size: pageSize}, chain_id: _chainId
     })
     return result.data
 }
+

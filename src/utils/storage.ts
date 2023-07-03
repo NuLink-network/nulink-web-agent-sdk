@@ -9,7 +9,7 @@ export const storage = {
     }
     return JSON.parse(value as string);
   },
-  setItem: (keyName: string, keyValue: string | object) => {
+  setItem: (keyName: string, keyValue: string | object | number) => {
     const key = `${storagePrefix}${keyName}`,
       value = JSON.stringify(keyValue);
     window.localStorage.setItem(key, value);

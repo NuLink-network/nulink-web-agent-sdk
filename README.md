@@ -9,14 +9,14 @@ Welcome to the API documentation for Nulink Web Agent. These APIs allow you to a
 
 ### Getting Started
 
-The default web agent address in the Nulink Web Agent Access SDK is: https://agent.testnet.nulink.org, and the default backend service address is: https://agent-integration-demo.nulink.org/bk. If you need to change these two addresses, you will need to write the following configurations in the .env file of your project: REACT_APP_NULINK_AGENT_ADDRESS for the web agent address and REACT_APP_NULINK_BACKEND_ADDRESS for the backend service address.
+The default web agent address in the Nulink Web Agent Access SDK is: https://agent.testnet.nulink.org, and the default centralized backend service address is: https://agent-integration-demo.nulink.org/bk. If you need to change these two addresses, you will need to write the following configurations in the .env file of your project: REACT_APP_NULINK_AGENT_URL for the web agent address and REACT_APP_CENTRALIZED_SERVER_URL for the centralized service address.
 
 ```
 // modify .env in your project
 // the web agent address
-REACT_APP_NULINK_AGENT_ADDRESS=xxxxxx
-// the agent bcakend service address
-REACT_APP_NULINK_BACKEND_ADDRESS=xxxxxx
+REACT_APP_NULINK_AGENT_URL=xxxxxx
+// the agent centralized bcakend service address
+REACT_APP_CENTRALIZED_SERVER_URL=xxxxxx
 ```
 ### Install
 ```bash
@@ -171,21 +171,13 @@ const applyForFile = async () => {
 
 ### approve
 ```typescript
-approve(applyId:string,
-         applyUserId:string,
-         applyUserAddress:string,
-         days:string,
-         remark:string,
-         callBackFunc:CallBackFunc)
+approve(applyId:string, applyUserAddress:string, days:string, callBackFunc:CallBackFunc)
 ```
 
-  ```approve```is used for approving files, takes six parameters: applyId, applyUserId, applyUserAddress, days, remark, and callBackFunc.
+  ```approve```is used for approving files, takes three parameters: applyId, days and callBackFunc.
 #### Parameters
 - applyId : string - the application ID
-- applyUserId : string - the application user id
-- applyUserAddress : string - the application user address
 - days : string - the application days
-- remark : string - the remark
 - Promise : CallBackFunc - A callback function that will be called with the response data from the server.
 
 #### Returns
@@ -196,8 +188,49 @@ approve(applyId:string,
     action: string
     subAction?: string
     from: string - the file owner's address
-    to: string - the file requester's address
-    applyId: string - the apply id
+    applyIds: string[] - the apply id array
+    result: string
+    redirectUrl: string
+}
+```
+
+#### Example
+
+```typescript
+const approveSubmit = async () => {
+    await approve(applyId, userAccountId, currentRecord.proposer_address, currentRecord.days, currentRecord.remark, async () => {
+      if (responseData) {
+        // Do something with the responseData
+        console.log(responseData);
+      } else {
+        // Handle the error case
+        console.error('Failed to upload');
+      }
+    });
+  };
+```
+
+### batchApprove
+```typescript
+batchApprove(applyList:[{applyId : string,days : string}], callBackFunc:CallBackFunc)
+```
+
+```batchApprove``` batch approving files application, takes two parameters: applyList and callBackFunc.
+#### Parameters
+- applyList : array - the application list
+    - applyId : string - the application id
+    - days : string - the application days
+- Promise : CallBackFunc - A callback function that will be called with the response data from the server.
+
+#### Returns
+```
+{
+    accountAddress: string - the address of the logged-in user
+    accountId: string - the Id of the logged-in user
+    action: string
+    subAction?: string
+    from: string - the file owner's address
+    applyIds: string - the apply id array
     result: string
     redirectUrl: string
 }
