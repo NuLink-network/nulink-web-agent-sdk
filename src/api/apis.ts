@@ -137,10 +137,11 @@ const applySuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     }
 }
 
-export const batchApprove = async (applyList:[{applyId : string,days : string}],
+export const batchApprove = async (applyList:[{applyId : string,days : string, applyUserId: string }],
                               callBackFunc:CallBackFunc) => {
     const applyIds: string [] = applyList.map((item) => item.applyId)
     const days: string [] = applyList.map((item) => item.days)
+    const _userAccountIds: string [] = applyList.map((item) => item.applyUserId)
     const userInfo = await storage.getItem(cache_user_key);
     const _chainId = await storage.getItem(cache_chain_id);
     const agentAccountAddress = userInfo.accountAddress;
@@ -154,6 +155,7 @@ export const batchApprove = async (applyList:[{applyId : string,days : string}],
             from: agentAccountAddress,
             applyIds: applyIds,
             days: days,
+            userAccountIds: _userAccountIds,
             chainId: _chainId
         };
         if (nulink_agent_config.address) {
@@ -170,6 +172,7 @@ export const batchApprove = async (applyList:[{applyId : string,days : string}],
 
 export const approve = async (applyId:string,
                               applyUserAddress:string,
+                              applyUserId:string,
                               days:string,
                               callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
@@ -186,6 +189,7 @@ export const approve = async (applyId:string,
             to: applyUserAddress,
             applyIds: [applyId],
             days: [days],
+            userAccountIds: [applyUserId],
             chainId: _chainId
         };
         if (nulink_agent_config.address) {

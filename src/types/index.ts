@@ -59,6 +59,7 @@ export type batchApproveRequestData = {
     to?: string | null
     applyIds: string []
     days: string []
+    userAccountIds: string []
     chainId: number
 }
 
