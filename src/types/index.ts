@@ -129,3 +129,27 @@ export type ApplyInfo = {
     fileCreatorAddress: string
     usageDays: number
 }
+
+export enum NETWORK_LIST {
+    Horus = "Horus",
+    Conflux = "Conflux Espace",
+}
+
+interface Network {
+    chainId: number;
+    key: string;
+    label: string;
+}
+
+export const netWorkList: Array<Network> = [
+    {
+        chainId: 97,
+        key: NETWORK_LIST.Horus,
+        label: "Horus (BSC Testnet)",
+    },
+    {
+        chainId: 71,
+        key: NETWORK_LIST.Conflux,
+        label: "Conflux eSpace Testnet",
+    },
+];

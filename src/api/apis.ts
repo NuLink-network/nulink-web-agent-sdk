@@ -5,7 +5,7 @@ import {
     applyRequestData,
     batchApproveRequestData,
     decryptionRequestData,
-    loginResponseData,
+    loginResponseData, NETWORK_LIST, netWorkList,
     requisiteQueryData
 } from "../types";
 import { getKeyPair, privateKeyDecrypt } from "../utils/rsautil";
@@ -15,6 +15,14 @@ import { axios } from "../utils/axios";
 
 export const cache_user_key: string = "userinfo";
 export const cache_chain_id: string = "chain_id";
+
+export const getNetWorkChainId = async (): Promise<number> => {
+    return await storage.getItem(cache_chain_id) || nulink_agent_config.chain_id
+}
+
+export const setNetWorkChainId = async (chainId : string ) => {
+    await storage.setItem(cache_chain_id, chainId);
+}
 
 export const connect = async (callBackFunc:CallBackFunc) => {
     if(nulink_agent_config.address){
@@ -55,19 +63,9 @@ export const checkReLogin = async (responseData: any) => {
     }
 }
 
-export const checkNetWork = async (responseData: any) => {
-    if (responseData && responseData.subAction && responseData.subAction == "relogin") {
-        const userInfo = {
-            accountAddress: responseData.accountAddress,
-            accountId: responseData.accountId
-        };
-        storage.setItem(cache_user_key, JSON.stringify(userInfo));
-    }
-}
-
 export const upload = async (callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
-    const _chainId = await storage.getItem(cache_chain_id);
+    const _chainId = await getNetWorkChainId()
     const queryData: requisiteQueryData = {
         accountAddress: userInfo.accountAddress,
         accountId: userInfo.accountId,
@@ -97,7 +95,7 @@ const uploadSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
 
 export const apply = async (applyInfo: ApplyInfo, callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
-    const _chainId = await storage.getItem(cache_chain_id);
+    const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress;
     const agentAccountId = userInfo.accountId;
     if (agentAccountAddress && agentAccountId) {
@@ -143,7 +141,7 @@ export const batchApprove = async (applyList:[{applyId : string,days : string, a
     const days: string [] = applyList.map((item) => item.days)
     const _userAccountIds: string [] = applyList.map((item) => item.applyUserId)
     const userInfo = await storage.getItem(cache_user_key);
-    const _chainId = await storage.getItem(cache_chain_id);
+    const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress;
     const agentAccountId = userInfo.accountId;
     if (agentAccountAddress && agentAccountId) {
@@ -176,7 +174,7 @@ export const approve = async (applyId:string,
                               days:string,
                               callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
-    const _chainId = await storage.getItem(cache_chain_id);
+    const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress;
     const agentAccountId = userInfo.accountId;
     if (agentAccountAddress && agentAccountId) {
@@ -223,7 +221,7 @@ export const download = async (fileId:string, fileName:string, applyUserAddress:
     const encryptedKeypair = encrypt(JSON.stringify(keypair));
     await localStorage.setItem('encryptedKeypair', encryptedKeypair)
     const userInfo = storage.getItem("userinfo");
-    const _chainId = await storage.getItem(cache_chain_id);
+    const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress
     const agentAccountId = userInfo.accountId
 

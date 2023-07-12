@@ -9,8 +9,13 @@ Welcome to the API documentation for Nulink Web Agent. These APIs allow you to a
 
 ### Getting Started
 
-The default web agent address in the Nulink Web Agent Access SDK is: https://agent.testnet.nulink.org, and the default centralized backend service address is: https://agent-integration-demo.nulink.org/bk. If you need to change these two addresses, you will need to write the following configurations in the .env file of your project: REACT_APP_NULINK_AGENT_URL for the web agent address and REACT_APP_CENTRALIZED_SERVER_URL for the centralized service address.
-
+The default web agent address in the Nulink Web Agent Access SDK is https://agent.testnet.nulink.org.
+The default centralized backend service address is https://agent-integration-demo.nulink.org/bk. 
+The default network chain id is 97.
+If you need to change these two addresses, you will need to write the following configurations in the .env file of your project: 
+REACT_APP_NULINK_AGENT_URL for the web agent address,
+REACT_APP_CENTRALIZED_SERVER_URL for the centralized service address,
+REACT_APP_DEFAULT_NETWORK_CHAIN_ID for the network chain id.
 ```
 // modify .env in your project
 // the web agent address
@@ -510,6 +515,58 @@ const _getIncomingApplyFiles = async () => {
         proposerId, status, pageNum, pageSize
     );
     dealWithResultList(result);
+};
+
+```
+
+### getNetWorkChainId
+
+```typescript
+getNetWorkChainId()
+```
+Function to get the network info
+
+#### Parameters
+  None
+
+#### Returns
+```typescript
+    chinId: number - the network chain id
+```
+
+#### Example
+```typescript
+import { getNetWorkChainId }  from "@nulink_network/nulink-web-agent-access-sdk"
+
+const _getNetWorkChainId = async () => {
+    let chainId = await getNetWorkChainId();
+    // do something
+};
+
+```
+
+### setNetWorkChainId
+
+```typescript
+getNetWorkChainId(chainId : string )
+```
+Function to get the network info
+
+#### Parameters
+```typescript
+    chainId : string - the network chain id which you will set
+```
+
+#### Returns
+ None
+
+#### Example
+```typescript
+import { setNetWorkChainId }  from "@nulink_network/nulink-web-agent-access-sdk"
+
+const _setNetWorkChainId = async () => {
+    await getNetWorkChainId(97);
+    // do something
 };
 
 ```
