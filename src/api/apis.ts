@@ -17,7 +17,7 @@ export const cache_user_key: string = "userinfo";
 export const cache_chain_id: string = "chain_id";
 
 export const getNetWorkChainId = async (): Promise<number> => {
-    return await storage.getItem(cache_chain_id) || nulink_agent_config.chain_id
+    return Number(await storage.getItem(cache_chain_id) || nulink_agent_config.chain_id)
 }
 
 export const setNetWorkChainId = async (chainId : string ) => {
@@ -53,7 +53,7 @@ const loginSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     }
 }
 
-export const checkReLogin = async (responseData: any) => {
+/*export const checkReLogin = async (responseData: any) => {
     if (responseData && responseData.subAction && responseData.subAction == "relogin") {
         const userInfo = {
             accountAddress: responseData.accountAddress,
@@ -61,7 +61,7 @@ export const checkReLogin = async (responseData: any) => {
         };
         storage.setItem(cache_user_key, JSON.stringify(userInfo));
     }
-}
+}*/
 
 export const upload = async (callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
@@ -85,7 +85,6 @@ export const upload = async (callBackFunc:CallBackFunc) => {
 const uploadSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     const responseData = e.data;
     if (responseData) {
-        await checkReLogin(responseData)
         if (responseData.action == "upload" && responseData.result == "success") {
             await callBackFunc(responseData)
             window.removeEventListener("message", uploadSuccessHandler.bind(this, callBackFunc))
@@ -127,7 +126,6 @@ export const apply = async (applyInfo: ApplyInfo, callBackFunc:CallBackFunc) => 
 const applySuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     const responseData = e.data;
     if (responseData) {
-        await checkReLogin(responseData)
         if (responseData.action == "apply" && responseData.result == "success") {
             await callBackFunc(responseData);
             window.removeEventListener("message", applySuccessHandler.bind(this, callBackFunc));
@@ -206,7 +204,6 @@ export const approve = async (applyId:string,
 const approveSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     const responseData = e.data;
     if (responseData) {
-        await checkReLogin(responseData)
         if (responseData.action == "approve") {
             await callBackFunc(responseData)
             window.removeEventListener("message", approveSuccessHandler.bind(this, callBackFunc));
@@ -256,7 +253,6 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
             const secret = privateKeyDecrypt(_privateKey, responseData.key)
             const response = JSON.parse(aesDecryt(responseData.data, secret))
             if (response) {
-                await checkReLogin(response)
                 if (response.action == 'decrypted' && response.result == 'success') {
                     await callBackFunc(response)
                     window.removeEventListener("message", authorizationSuccessHandler.bind(this, callBackFunc))
