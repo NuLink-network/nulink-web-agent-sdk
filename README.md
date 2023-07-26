@@ -11,8 +11,8 @@ Welcome to the API documentation for Nulink Web Agent. These APIs allow you to a
 
 The default web agent address in the Nulink Web Agent Access SDK is https://agent.testnet.nulink.org.
 The default centralized backend service address is https://agent-integration-demo.nulink.org/bk. 
-The default network chain id is 97.
-If you need to change these two addresses, you will need to write the following configurations in the .env file of your project: 
+The default network is Horus (BSC Testnet), default chain id is 97.
+If you need to change these two addresses and network, you will need to write the following configurations in the .env file of your project: 
 REACT_APP_NULINK_AGENT_URL for the web agent address,
 REACT_APP_CENTRALIZED_SERVER_URL for the centralized service address,
 REACT_APP_DEFAULT_NETWORK_CHAIN_ID for the network chain id.
@@ -22,7 +22,10 @@ REACT_APP_DEFAULT_NETWORK_CHAIN_ID for the network chain id.
 REACT_APP_NULINK_AGENT_URL=xxxxxx
 // the agent centralized bcakend service address
 REACT_APP_CENTRALIZED_SERVER_URL=xxxxxx
+// chain Id
+REACT_APP_DEFAULT_NETWORK_CHAIN_ID=xx
 ```
+
 ### Install
 ```bash
 npm i @nulink_network/nulink-web-agent-access-sdk
