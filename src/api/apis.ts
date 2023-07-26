@@ -277,13 +277,13 @@ export const getFileDetail = async (
     fileId: string,
     fileUserAccountId: string
 ): Promise<FileData> => {
-    const _chainId = await storage.getItem(cache_chain_id);
+    const _chainId = await getNetWorkChainId();
     let result = await axios.post(nulink_agent_config.backend_address + '/file/detail', {consumer_id: fileUserAccountId, file_id: fileId, chain_id: _chainId})
     return result.data
 };
 
 export const getSendApplyFiles = async (proposerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
-    const _chainId = await storage.getItem(cache_chain_id);
+    const _chainId = await getNetWorkChainId();
     let result =  await axios.post(nulink_agent_config.backend_address + '/apply/list', {
         proposer_id: proposerId, status: status, paginate: {page: pageNum, page_size: pageSize}, chain_id: _chainId
     })
@@ -291,7 +291,7 @@ export const getSendApplyFiles = async (proposerId: string, status:number = 0, p
 }
 
 export const getIncomingApplyFiles = async (fileOwnerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
-    const _chainId = await storage.getItem(cache_chain_id);
+    const _chainId = await getNetWorkChainId();
     let result = await axios.post(nulink_agent_config.backend_address + '/apply/list', {
         file_owner_id: fileOwnerId, status: status, paginate: {page: pageNum, page_size: pageSize}, chain_id: _chainId
     })
