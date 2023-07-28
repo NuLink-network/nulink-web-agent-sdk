@@ -25,8 +25,13 @@ export const setNetWorkChainId = async (chainId : string ) => {
 }
 
 export const connect = async (callBackFunc:CallBackFunc) => {
+    const _chainId = await getNetWorkChainId()
+    const queryData = {
+        redirectUrl: document.location.toString(),
+        chainId: _chainId
+    };
     if(nulink_agent_config.address){
-        window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/guide?from=outside&redirectUrl=" + document.location.toString())
+        window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/guide?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
         window.addEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
     } else {
         throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
