@@ -1,3 +1,5 @@
+import {sendCustomTransaction} from "../api";
+
 export enum ChainId {
     BSC_MAINNET = 56,
     BSC_TESTNET = 97,
@@ -63,6 +65,17 @@ export type batchApproveRequestData = {
     chainId: number
 }
 
+export type transactionRequestData = {
+    accountAddress: string | null
+    accountId: string | null
+    redirectUrl: string
+    sourceUrl: string
+    toAddress: string
+    rawTxData?: string
+    value?: string
+    gasPrice?: string
+    chainId: number
+}
 
 export type requisiteApproveData = {
     accountAddress: string
@@ -120,6 +133,20 @@ export type decryptionResponseData = {
     result: string
     redirectUrl: string
     url?: string
+}
+
+export type transactionResponseData = {
+    accountAddress: string
+    accountId: string
+    toAddress: string
+    rawTxData?: string
+    value?: string
+    gasPrice?: string
+    action: string
+    subAction?: string
+    result: string
+    transactionHash?: string
+    errorMsg?: any
 }
 
 

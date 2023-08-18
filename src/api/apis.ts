@@ -6,7 +6,7 @@ import {
     batchApproveRequestData,
     decryptionRequestData,
     loginResponseData, NETWORK_LIST, netWorkList,
-    requisiteQueryData
+    requisiteQueryData, transactionRequestData
 } from "../types";
 import { getKeyPair, privateKeyDecrypt } from "../utils/rsautil";
 import { encrypt, decrypt } from "./passwordEncryption";
@@ -303,3 +303,49 @@ export const getIncomingApplyFiles = async (fileOwnerId: string, status:number =
     return result.data
 }
 
+/**
+ *
+ * @param toAddress: The recevier of the transaction.
+ * @param rawTxData: The call data of the transaction, can be empty for simple value transfers.
+ * @param value: The value of the transaction in wei.
+ * @param gasPrice: The gas price set by this transaction, if empty, it will use web3.eth.getGasPrice()
+ * @param callBackFunc: A callback function that will be called with the response data from the server.
+ */
+export const sendCustomTransaction = async (callBackFunc:CallBackFunc, toAddress: string, rawTxData?: string, value?: string, gasPrice?: string) => {
+    if (toAddress.length < 1){
+        throw new Error("The receiving address cannot be empty.")
+    }
+    const userInfo = await storage.getItem(cache_user_key);
+    const agentAccountAddress = userInfo.accountAddress;
+    const agentAccountId = userInfo.accountId;
+    const _chainId = await getNetWorkChainId()
+    if(agentAccountAddress && agentAccountId){
+        const transactionData: transactionRequestData = {
+            accountAddress: agentAccountAddress,
+            accountId: agentAccountId,
+            redirectUrl: document.location.toString(),
+            sourceUrl: document.domain,
+            toAddress: toAddress,
+            rawTxData: rawTxData,
+            value: value,
+            gasPrice: gasPrice,
+            chainId: _chainId
+        }
+        if (nulink_agent_config.address) {
+            window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/send-transaction?from=outside&data=" + encodeURIComponent(JSON.stringify(transactionData)))
+        } else {
+            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
+        }
+        window.addEventListener("message", transactionSuccessHandler.bind(this, callBackFunc))
+    }
+}
+
+const transactionSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
+    const responseData = e.data;
+    if (responseData) {
+        if (responseData.action == "transaction") {
+            await callBackFunc(responseData);
+            window.removeEventListener("message", transactionSuccessHandler.bind(this, callBackFunc));
+        }
+    }
+}
