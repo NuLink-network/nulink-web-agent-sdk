@@ -24,18 +24,22 @@ export const setNetWorkChainId = async (chainId : string ) => {
     await storage.setItem(cache_chain_id, chainId);
 }
 
+const getAgentAddress = () => {
+  return nulink_agent_config.address.endsWith('/')? nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1) : nulink_agent_config.address
+}
+
+const getAgentBackendAddress = () => {
+    return nulink_agent_config.backend_address.endsWith('/')? nulink_agent_config.backend_address.substring(0, nulink_agent_config.backend_address.length -1) : nulink_agent_config.backend_address
+}
+
 export const connect = async (callBackFunc:CallBackFunc) => {
     const _chainId = await getNetWorkChainId()
     const queryData = {
         redirectUrl: document.location.toString(),
         chainId: _chainId
     };
-    if(nulink_agent_config.address){
-        window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/guide?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
-        window.addEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
-    } else {
-        throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
-    }
+    window.open(getAgentAddress() + "/guide?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
+    window.addEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
 }
 
 type CallBackFunc =  ( responseData?:any ) => Promise<any>;
@@ -77,13 +81,7 @@ export const upload = async (callBackFunc:CallBackFunc) => {
         redirectUrl: document.location.toString(),
         chainId: _chainId
     };
-    if (nulink_agent_config.address){
-        window.open(
-            nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/upload-file?from=outside&data=" +
-            encodeURIComponent(JSON.stringify(queryData)))
-    } else {
-        throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
-    }
+    window.open(getAgentAddress() + "/upload-file?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
     window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
 }
 
@@ -114,14 +112,7 @@ export const apply = async (applyInfo: ApplyInfo, callBackFunc:CallBackFunc) => 
             days: applyInfo.usageDays,
             chainId: _chainId
         };
-        if (nulink_agent_config.address){
-            window.open(
-                nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/request-files?from=outside&data=" +
-                encodeURIComponent(JSON.stringify(applyParam))
-            );
-        } else {
-            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
-        }
+        window.open( getAgentAddress() + "/request-files?from=outside&data=" + encodeURIComponent(JSON.stringify(applyParam)));
         window.addEventListener("message", applySuccessHandler.bind(this, callBackFunc));
     } else {
         throw new Error("Unlink user information not found, please log in first")
@@ -159,14 +150,7 @@ export const batchApprove = async (applyList:[{applyId : string,days : string, a
             userAccountIds: _userAccountIds,
             chainId: _chainId
         };
-        if (nulink_agent_config.address) {
-            window.open(
-                nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/approve?from=outside&data=" +
-                    encodeURIComponent(JSON.stringify(approveParam))
-            );
-        } else {
-            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
-        }
+        window.open(getAgentAddress() + "/approve?from=outside&data=" + encodeURIComponent(JSON.stringify(approveParam)));
         window.addEventListener("message", approveSuccessHandler.bind(this, callBackFunc));
     }
 };
@@ -193,14 +177,7 @@ export const approve = async (applyId:string,
             userAccountIds: [applyUserId],
             chainId: _chainId
         };
-        if (nulink_agent_config.address) {
-            window.open(
-                nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/approve?from=outside&data=" +
-                encodeURIComponent(JSON.stringify(approveParam))
-            );
-        } else {
-            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
-        }
+        window.open(getAgentAddress()+ "/approve?from=outside&data=" + encodeURIComponent(JSON.stringify(approveParam)));
         window.addEventListener("message", approveSuccessHandler.bind(this, callBackFunc));
     }
 };
@@ -239,11 +216,7 @@ export const download = async (fileId:string, fileName:string, applyUserAddress:
             publicKey: publicKey,
             chainId: _chainId
         }
-        if (nulink_agent_config.address) {
-            window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/request-authorization?from=outside&data=" + encodeURIComponent(JSON.stringify(decryptionRequestData)))
-        } else {
-            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
-        }
+        window.open(getAgentAddress() + "/request-authorization?from=outside&data=" + encodeURIComponent(JSON.stringify(decryptionRequestData)))
         window.addEventListener("message", authorizationSuccessHandler.bind(this, callBackFunc))
     }
 };
@@ -274,7 +247,7 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
 export const getFileList = async (
     accountId:string, include:boolean, desc:boolean = false, pageNum:number, pageSize:number
 ): Promise<FileData> => {
-    let result = await axios.post(nulink_agent_config.backend_address + '/file/others-list', {account_id: accountId, include: include, desc:desc, paginate: {page: pageNum, page_size: pageSize}})
+    let result = await axios.post(getAgentBackendAddress() + '/file/others-list', {account_id: accountId, include: include, desc:desc, paginate: {page: pageNum, page_size: pageSize}})
     return result.data
 };
 
@@ -283,13 +256,13 @@ export const getFileDetail = async (
     fileUserAccountId: string
 ): Promise<FileData> => {
     const _chainId = await getNetWorkChainId();
-    let result = await axios.post(nulink_agent_config.backend_address + '/file/detail', {consumer_id: fileUserAccountId, file_id: fileId, chain_id: _chainId})
+    let result = await axios.post(getAgentBackendAddress() + '/file/detail', {consumer_id: fileUserAccountId, file_id: fileId, chain_id: _chainId})
     return result.data
 };
 
 export const getSendApplyFiles = async (proposerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
     const _chainId = await getNetWorkChainId();
-    let result =  await axios.post(nulink_agent_config.backend_address + '/apply/list', {
+    let result =  await axios.post(getAgentBackendAddress() + '/apply/list', {
         proposer_id: proposerId, status: status, paginate: {page: pageNum, page_size: pageSize}, chain_id: _chainId
     })
     return result.data
@@ -297,7 +270,7 @@ export const getSendApplyFiles = async (proposerId: string, status:number = 0, p
 
 export const getIncomingApplyFiles = async (fileOwnerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
     const _chainId = await getNetWorkChainId();
-    let result = await axios.post(nulink_agent_config.backend_address + '/apply/list', {
+    let result = await axios.post(getAgentBackendAddress() + '/apply/list', {
         file_owner_id: fileOwnerId, status: status, paginate: {page: pageNum, page_size: pageSize}, chain_id: _chainId
     })
     return result.data
@@ -331,11 +304,7 @@ export const sendCustomTransaction = async (callBackFunc:CallBackFunc, toAddress
             gasPrice: gasPrice,
             chainId: _chainId
         }
-        if (nulink_agent_config.address) {
-            window.open(nulink_agent_config.address.endsWith("/")?nulink_agent_config.address.substring(0, nulink_agent_config.address.length -1):nulink_agent_config.address + "/send-transaction?from=outside&data=" + encodeURIComponent(JSON.stringify(transactionData)))
-        } else {
-            throw new Error("nulink agent address not found, please make sure that the REACT_APP_NULINK_AGENT_ADDRESS configuration is correct")
-        }
+        window.open(getAgentAddress() + "/send-transaction?from=outside&data=" + encodeURIComponent(JSON.stringify(transactionData)))
         window.addEventListener("message", transactionSuccessHandler.bind(this, callBackFunc))
     }
 }
