@@ -87,52 +87,57 @@ export type requisiteApproveData = {
 export type approveResponseData = {
     accountAddress: string
     accountId: string
-    action: string
+    action: 'approve'
     subAction?: string
     from: string
+    to?: string | null
     applyIds: string[]
-    result: string
+    result: 'success' | 'failed'
     redirectUrl: string
+    errorMsg?: any
 }
 
 export type uploadResponseData = {
     accountAddress: string
     accountId: string
-    action: string
+    action: 'upload'
     subAction?: string
-    result: string
+    result: 'success' | 'failed'
     redirectUrl: string
+    errorMsg?: any
 }
 
 export type applyResponseData = {
     accountAddress: string
     accountId: string
-    action: string
+    action: 'apply'
     subAction?: string
     owner: string
     user: string
-    result: string
+    result: 'success' | 'failed'
     redirectUrl: string
+    errorMsg?: any
 }
 
 export type loginResponseData = {
     accountAddress: string
     accountId: string
-    chainId: string
-    action: string
-    result: string
+    action: 'login'
+    result: 'success' | 'failed'
     redirectUrl: string
+    chainId: number
 }
 
 export type decryptionResponseData = {
     accountAddress: string
     accountId: string
     fileName: string
-    action: string
+    action: 'decrypted'
     subAction?: string
-    result: string
+    result: 'success' | 'failed'
     redirectUrl: string
     url?: string
+    errorMsg?: any
 }
 
 export type transactionResponseData = {
@@ -144,11 +149,10 @@ export type transactionResponseData = {
     gasPrice?: string
     action: string
     subAction?: string
-    result: string
+    result: 'success' | 'failed'
     transactionHash?: string
     errorMsg?: any
 }
-
 
 export type ApplyInfo = {
     fileName: string

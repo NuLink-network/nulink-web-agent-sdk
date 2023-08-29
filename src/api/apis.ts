@@ -182,7 +182,6 @@ export const approve = async (applyId:string,
     }
 };
 
-
 const approveSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     const responseData = e.data;
     if (responseData) {
@@ -224,23 +223,29 @@ export const download = async (fileId:string, fileName:string, applyUserAddress:
 const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     try {
         const responseData = e.data
-        const encryptedKeypair = await localStorage.getItem('encryptedKeypair')
-        if (!!encryptedKeypair) {
-            const keypair = JSON.parse(decrypt(encryptedKeypair))
-            const _privateKey = keypair.privateKey
-            const secret = privateKeyDecrypt(_privateKey, responseData.key)
-            const response = JSON.parse(aesDecryt(responseData.data, secret))
-            if (response) {
-                if (response.action == 'decrypted' && response.result == 'success') {
-                    await callBackFunc(response)
-                    window.removeEventListener("message", authorizationSuccessHandler.bind(this, callBackFunc))
+        if (responseData.action && responseData.action == 'decrypted'){
+            const encryptedKeypair = await localStorage.getItem('encryptedKeypair')
+            if (!!encryptedKeypair) {
+                const keypair = JSON.parse(decrypt(encryptedKeypair))
+                const _privateKey = keypair.privateKey
+                if (responseData._nuLinkDecryptionKey){
+                    const secret = privateKeyDecrypt(_privateKey, responseData._nuLinkDecryptionKey)
+                    const response = JSON.parse(aesDecryt(responseData.data, secret))
+                    if (response) {
+                        if (response.action == 'decrypted') {
+                            await callBackFunc(response)
+                            window.removeEventListener("message", authorizationSuccessHandler.bind(this, callBackFunc))
+                        }
+                    }
+                } else {
+                    throw new Error("NuLink Decryption Key does not exist, Please contact the administrator")
                 }
+            } else {
+                throw new Error("Key pair does not exist")
             }
-        } else {
-            throw new Error("Key pair does not exist")
         }
     } catch (error) {
-        throw new Error("Decryption failed, Please try again")
+        throw new Error((error as string).toString())
     }
 }
 
