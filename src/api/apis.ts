@@ -16,6 +16,16 @@ import { axios } from "../utils/axios";
 export const cache_user_key: string = "userinfo";
 export const cache_chain_id: string = "chain_id";
 
+const agentAddress = nulink_agent_config.address
+
+const arrayBufferToString = (arrayBuffer:ArrayBuffer) => {
+    const decoder = new TextDecoder('utf-8');
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const string = decoder.decode(uint8Array);
+    return string;
+}
+
+
 export const getNetWorkChainId = async (): Promise<number> => {
     return Number(await storage.getItem(cache_chain_id) || nulink_agent_config.chain_id)
 }
@@ -85,6 +95,30 @@ export const upload = async (callBackFunc:CallBackFunc) => {
     window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
 }
 
+export const arrayBufferUploadBatch = async (ownerAddress:string, dataLabel: string, fileArrayBuffer: ArrayBuffer[], callBackFunc:CallBackFunc) => {
+    const userInfo = await storage.getItem(cache_user_key);
+    const requestData = {
+        accountAddress: userInfo.accountAddress,
+        accountId: userInfo.accountId,
+        redirectUrl: document.location.toString(),
+        chainId: await getNetWorkChainId()
+    }
+    const agentWindow = window.open(getAgentAddress() + "/upload-file?from=outside&data=" + encodeURIComponent(JSON.stringify(requestData)))
+    if (agentWindow && !agentWindow.closed){
+        fileArrayBuffer.forEach((item) => {
+            window.postMessage(arrayBufferToString(item), agentAddress)
+        })
+        window.postMessage('END_FLAG', agentAddress)
+    }
+    window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
+}
+
+export const arrayBufferUpload = async (ownerAddress:string, dataLabel: string, fileArrayBuffer: ArrayBuffer, callBackFunc:CallBackFunc) => {
+    const arrayBuffers: ArrayBuffer[] = [];
+    arrayBuffers.push(fileArrayBuffer)
+    await arrayBufferUploadBatch(ownerAddress, dataLabel, arrayBuffers, callBackFunc)
+}
+
 const uploadSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     const responseData = e.data;
     if (responseData) {
@@ -129,11 +163,12 @@ const applySuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     }
 }
 
-export const batchApprove = async (applyList:[{applyId : string,days : string, applyUserId: string }],
+export const batchApprove = async (applyList:[{applyId : string,days : string, applyUserId: string, backupNodeNum: number }],
                               callBackFunc:CallBackFunc) => {
     const applyIds: string [] = applyList.map((item) => item.applyId)
     const days: string [] = applyList.map((item) => item.days)
     const _userAccountIds: string [] = applyList.map((item) => item.applyUserId)
+    const _backupNodeNumArray: number [] = applyList.map((item) => item.backupNodeNum)
     const userInfo = await storage.getItem(cache_user_key);
     const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress;
@@ -148,6 +183,7 @@ export const batchApprove = async (applyList:[{applyId : string,days : string, a
             applyIds: applyIds,
             days: days,
             userAccountIds: _userAccountIds,
+            backupNodeNum: _backupNodeNumArray,
             chainId: _chainId
         };
         window.open(getAgentAddress() + "/approve?from=outside&data=" + encodeURIComponent(JSON.stringify(approveParam)));
@@ -159,6 +195,7 @@ export const approve = async (applyId:string,
                               applyUserAddress:string,
                               applyUserId:string,
                               days:string,
+                              backupNodeNum:number,
                               callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
     const _chainId = await getNetWorkChainId()
@@ -175,6 +212,7 @@ export const approve = async (applyId:string,
             applyIds: [applyId],
             days: [days],
             userAccountIds: [applyUserId],
+            backupNodeNum:[backupNodeNum],
             chainId: _chainId
         };
         window.open(getAgentAddress()+ "/approve?from=outside&data=" + encodeURIComponent(JSON.stringify(approveParam)));
