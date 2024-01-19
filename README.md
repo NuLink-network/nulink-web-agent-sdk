@@ -329,7 +329,7 @@ const fileDownload = async () => {
 ### getFileList
 
 ```typescript
-getFileDetail(accountId:string, include:boolean, desc:boolean = false, pageNum:number, pageSize:number)
+getFileList(accountId:string, include:boolean, desc:boolean = false, pageNum:number, pageSize:number)
 ```
 Get the list of files belonging to other users.
 
@@ -345,17 +345,21 @@ Get the list of files belonging to other users.
 {
     total: number
     list: [{
-        file_id: string - File ID
-        file_name: string - File name
-        category: string - File category/type
-        format: string - File format
-        suffix: string - File suffix
-        address: string - File address
-        thumbnail: string - File thumbnail
-        owner: string - File owner
-        owner_id: string - File owner's account ID
-        owner_avatar: string - File owner's avatar
-        created_at: number - File upload timestamp
+        file_id: string - the file ID
+        file_name: string - the file name
+        file_hash: string - the file hash
+        file_raw_size: string - the original file size
+        file_zkproof: string - the zero-knowledge proof of file
+        file_encrypted_size: string - The size of the encrypted file
+        category: string - the file category/type
+        format: string - file format
+        suffix: string - file suffix
+        address: string - file address
+        thumbnail: string - file thumbnail
+        owner: string - file owner
+        owner_id: string - file owner's account ID
+        owner_avatar: string - file owner's avatar
+        created_at: number - file upload timestamp
     }]
 }
 ```
@@ -389,6 +393,10 @@ get file details
 {
     file_id: string - File ID
     file_name: string - File name
+    file_hash: string - the file hash
+    file_raw_size: string - the original file size
+    file_zkproof: string - the zero-knowledge proof of file
+    file_encrypted_size: string - The size of the encrypted file
     thumbnail: string - File thumbnail
     creator: string - Owner of the file (policy creator)
     creator_id: string - Owner ID of the file (policy creator ID)
@@ -446,6 +454,10 @@ Function to fetch send application files
 {
     file_id: string - File ID
     file_name: string - File name
+    file_hash: string - the file hash
+    file_raw_size: string - the original file size
+    file_zkproof: string - the zero-knowledge proof of file
+    file_encrypted_size: string - The size of the encrypted file
     thumbnail: string - File thumbnail
     apply_id: number - Application record ID
     proposer: string - Applicant name
@@ -496,6 +508,10 @@ Function to fetch the received application files
 {
     file_id: string - File ID
     file_name: string - File name
+    file_hash: string - the file hash
+    file_raw_size: string - the original file size
+    file_zkproof: string - the zero-knowledge proof of file
+    file_encrypted_size: string - The size of the encrypted file
     thumbnail: string - File thumbnail
     apply_id: number - Application record ID
     proposer: string - Applicant name

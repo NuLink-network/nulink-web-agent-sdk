@@ -61,6 +61,8 @@ export type batchApproveRequestData = {
     to?: string | null
     applyIds: string []
     days: string []
+    dataLabel: string [],
+    dataHash: string [],
     userAccountIds: string []
     backupNodeNum:number[]
     chainId: number
@@ -156,10 +158,16 @@ export type transactionResponseData = {
 }
 
 export type ApplyInfo = {
+    dataHash: string
     fileName: string
     fileId: string
     fileCreatorAddress: string
     usageDays: number
+}
+
+export type UploadData = {
+    dataLabel: string
+    content: ArrayBuffer
 }
 
 export enum NETWORK_LIST {
