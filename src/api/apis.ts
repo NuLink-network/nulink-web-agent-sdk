@@ -59,11 +59,11 @@ const getAgentBackendAddress = () => {
 }
 
 const getStakingServiceAddress = () => {
-    return nulink_agent_config.staking_service_url.endsWith('/')? nulink_agent_config.backend_address.substring(0, nulink_agent_config.backend_address.length -1) : nulink_agent_config.backend_address
+    return nulink_agent_config.staking_service_url.endsWith('/')? nulink_agent_config.staking_service_url.substring(0, nulink_agent_config.staking_service_url.length -1) : nulink_agent_config.staking_service_url
 }
 
 const getPorterServiceAddress = () => {
-    return nulink_agent_config.porter_url.endsWith('/')? nulink_agent_config.backend_address.substring(0, nulink_agent_config.backend_address.length -1) : nulink_agent_config.backend_address
+    return nulink_agent_config.porter_url.endsWith('/')? nulink_agent_config.porter_url.substring(0, nulink_agent_config.porter_url.length -1) : nulink_agent_config.porter_url
 }
 
 export const connect = async (callBackFunc:CallBackFunc) => {
