@@ -445,19 +445,29 @@ export const download = async (fileId:string,
     }
 };
 
+const stringToArrayBuffer = (str: string): ArrayBuffer => {
+    const buffer = new ArrayBuffer(str.length);
+    const uintArray = new Uint8Array(buffer);
+    for (let i = 0; i < str.length; i++) {
+        uintArray[i] = str.charCodeAt(i);
+    }
+    return buffer;
+}
+
 const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     try {
         const responseData = e.data
-        if (responseData.action && responseData.action == 'decrypted'){
+        if (responseData.action && responseData.action == 'decrypted') {
             const encryptedKeypair = await localStorage.getItem('encryptedKeypair')
             if (!!encryptedKeypair) {
                 const keypair = JSON.parse(decrypt(encryptedKeypair))
                 const _privateKey = keypair.privateKey
-                if (responseData._nuLinkDecryptionKey){
+                if (responseData._nuLinkDecryptionKey) {
                     const secret = privateKeyDecrypt(_privateKey, responseData._nuLinkDecryptionKey)
                     const response = JSON.parse(aesDecryt(responseData.data, secret))
                     if (response) {
                         if (response.action == 'decrypted') {
+                            response.arrayBuffer = stringToArrayBuffer(response.arrayBuffer)
                             await callBackFunc(response)
                             window.removeEventListener("message", authorizationSuccessHandler.bind(this, callBackFunc))
                         }
