@@ -649,7 +649,7 @@ export const getUrsulaNumber = async () => {
     let porterResult = await axios.get(getPorterServiceAddress() + '/include/ursulas')
     let porterUrsulaNum = porterResult.data.result.total;
     let ursulaNum = stakingUrsulaNum > porterUrsulaNum?porterUrsulaNum:stakingUrsulaNum
-    ursulaNum = ursulaNum > 10?5:Math.floor(ursulaNum/5);
+    ursulaNum = Math.min(5,Math.floor(ursulaNum/5))
     ursulaNum = ursulaNum == 0?1:ursulaNum
     return ursulaNum
 }
