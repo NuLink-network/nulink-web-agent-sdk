@@ -26,6 +26,10 @@ export const setNetWorkChainId = async (chainId : string ) => {
     await storage.setItem(cache_chain_id, chainId);
 }
 
+/**
+ * convert File To UploadData
+ * @param files
+ */
 export const convertFileToUploadData = async (files : File[]) => {
     const upFiles: any = []
     for (const file of files) {
@@ -94,19 +98,6 @@ const loginSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
             window.removeEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
         }
     }
-}
-
-export const upload = async (callBackFunc:CallBackFunc) => {
-    const userInfo = await storage.getItem(cache_user_key);
-    const _chainId = await getNetWorkChainId()
-    const queryData: requisiteQueryData = {
-        accountAddress: userInfo.accountAddress,
-        accountId: userInfo.accountId,
-        redirectUrl: document.location.toString(),
-        chainId: _chainId
-    };
-    const agentWindow = window.open(getAgentAddress() + "/upload-file?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
-    window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
 }
 
 /**
@@ -405,6 +396,17 @@ const approveSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
  * @param zkProof : string - the zk proof of the file
  * @param encryptedDataSize - the size of encrypted file data
  * @param callBackFunc : CallBackFunc - A callback function that will be called with the response data from the server.
+ * @return {
+ *     accountAddress: string
+ *     accountId: string
+ *     fileName: string
+ *     action: 'decrypted'
+ *     subAction?: string
+ *     result: 'success' | 'failed'
+ *     redirectUrl: string
+ *     arrayBuffer?: string
+ *     errorMsg?: any
+ * }
  */
 export const download = async (fileId:string,
                                fileName:string,
