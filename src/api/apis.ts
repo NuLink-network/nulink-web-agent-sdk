@@ -2,7 +2,7 @@ import { nulink_agent_config } from "../config";
 import storage from "../utils/storage";
 import {
     ApplyInfo,
-    applyRequestData,
+    applyRequestData, ApproveInfo,
     batchApproveRequestData,
     decryptionRequestData,
     loginResponseData, NETWORK_LIST, netWorkList,
@@ -18,20 +18,36 @@ export const cache_chain_id: string = "chain_id";
 
 const agentAddress = nulink_agent_config.address
 
-const arrayBufferToString = (arrayBuffer:ArrayBuffer) => {
-    const decoder = new TextDecoder('utf-8');
-    const uint8Array = new Uint8Array(arrayBuffer);
-    const string = decoder.decode(uint8Array);
-    return string;
-}
-
-
 export const getNetWorkChainId = async (): Promise<number> => {
     return Number(await storage.getItem(cache_chain_id) || nulink_agent_config.chain_id)
 }
 
 export const setNetWorkChainId = async (chainId : string ) => {
     await storage.setItem(cache_chain_id, chainId);
+}
+
+export const convertFileToUploadData = async (files : File[]) => {
+    const upFiles: any = []
+    for (const file of files) {
+        const fileBinaryArrayBuffer: ArrayBuffer = await blobToArrayBuffer(file) as ArrayBuffer
+        upFiles.push({ name: file.name, fileBinaryArrayBuffer })
+    }
+    upFiles.forEach((x) => {
+        x.fileBinaryArrayBuffer = Buffer.from(x.fileBinaryArrayBuffer).buffer
+    })
+    return upFiles
+}
+
+//* Convert resBlob to ArrayBuffer
+const blobToArrayBuffer = (blob: Blob) => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = (e: any) => {
+            const fileBinaryArrayBuffer = new Uint8Array(e?.target?.result).buffer;
+            resolve(fileBinaryArrayBuffer);
+        }
+        reader.readAsArrayBuffer(blob);
+    });
 }
 
 const getAgentAddress = () => {
@@ -80,16 +96,6 @@ const loginSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     }
 }
 
-/*export const checkReLogin = async (responseData: any) => {
-    if (responseData && responseData.subAction && responseData.subAction == "relogin") {
-        const userInfo = {
-            accountAddress: responseData.accountAddress,
-            accountId: responseData.accountId
-        };
-        storage.setItem(cache_user_key, JSON.stringify(userInfo));
-    }
-}*/
-
 export const upload = async (callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
     const _chainId = await getNetWorkChainId()
@@ -105,7 +111,11 @@ export const upload = async (callBackFunc:CallBackFunc) => {
 
 /**
  * upload ArrayBuffer
- * @param uploadData
+ * @param uploadData : UploadData
+ * type UploadData = {
+ *     dataLabel : string,
+ *     fileBinaryArrayBuffer: Blob
+ * }
  * @param callBackFunc
  */
 export const uploadArrayBuffer = async (uploadData: UploadData, callBackFunc:CallBackFunc) => {
@@ -138,11 +148,15 @@ export const uploadArrayBuffer = async (uploadData: UploadData, callBackFunc:Cal
 }
 
 /**
- *  Upload Batch
- * @param dataList : UploadData[] - type UploadData = { dataLabel: string, content: ArrayBuffer }
+ *  Upload Data
+ * @param dataList : UploadData[]
+ * type UploadData = {
+ *     dataLabel : string,
+ *     fileBinaryArrayBuffer: Blob
+ * }
  * @param callBackFunc
  */
-export const uploadArrayBufferBatch = async (dataList: UploadData[], callBackFunc:CallBackFunc) => {
+export const uploadDataBatch = async (dataList: UploadData[], callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
     const requestData = {
         accountAddress: userInfo.accountAddress,
@@ -150,6 +164,43 @@ export const uploadArrayBufferBatch = async (dataList: UploadData[], callBackFun
         redirectUrl: document.location.toString(),
         chainId: await getNetWorkChainId()
     }
+    const agentWindow = window.open(getAgentAddress() + "/upload-file?from=outside&data=" + encodeURIComponent(JSON.stringify(requestData)));
+
+    function handleMessageEvent(ev) {
+        if (ev.data == "agent_success") {
+            if (agentWindow && !agentWindow.closed) {
+                console.log("agent window is opening");
+                const message:any = {
+                    action: 'upload',
+                    fileList: dataList
+                }
+                agentWindow.postMessage(message, '*');
+                console.log("send message finish")
+                window.removeEventListener("message", handleMessageEvent);
+            }
+        }
+    }
+
+    window.addEventListener("message", handleMessageEvent);
+    window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
+}
+
+/**
+ *  Upload Files
+ * @param files : File[]
+ * @param callBackFunc
+ */
+export const uploadFileBatch = async (files: File[], callBackFunc:CallBackFunc) => {
+    const userInfo = await storage.getItem(cache_user_key);
+    const requestData = {
+        accountAddress: userInfo.accountAddress,
+        accountId: userInfo.accountId,
+        redirectUrl: document.location.toString(),
+        chainId: await getNetWorkChainId()
+    }
+
+    const dataList = await convertFileToUploadData(files)
+
     const agentWindow = window.open(getAgentAddress() + "/upload-file?from=outside&data=" + encodeURIComponent(JSON.stringify(requestData)));
 
     function handleMessageEvent(ev) {
@@ -188,6 +239,8 @@ const uploadSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
  *     fileName: string
  *     fileId: string
  *     fileCreatorAddress: string
+ *     fileUrl: string
+ *     fileHash: string
  *     usageDays: number
  * }
  * @param callBackFunc
@@ -203,6 +256,8 @@ export const apply = async (applyInfo: ApplyInfo, callBackFunc:CallBackFunc) => 
             accountId: agentAccountId,
             redirectUrl: document.location.toString(),
             fileName: applyInfo.fileName,
+            dataHash: applyInfo.fileHash,
+            dataStorageUrl: applyInfo.fileUrl,
             fileId: applyInfo.fileId,
             owner: applyInfo.fileCreatorAddress,
             user: userInfo.accountAddress,
@@ -226,12 +281,21 @@ const applySuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     }
 }
 
-/**
+/*/!**
  * batch approve
- * @param applyList - applyList:[{applyId : string,days : string, applyUserId: string, dataLabel: string, dataHash: string, backupNodeNum: number }]
+ * @param applyList
+ * type ApproveInfo = {
+ *     applyId : string
+ *     applyUserId: string
+ *     fileName: string
+ *     fileHash: string
+ *     fileStorageUrl: string
+ *     days : string
+ *     backupNodeNum: number
+ * }
  * @param callBackFunc
- */
-export const batchApprove = async (applyList:[{applyId : string,days : string, applyUserId: string, dataLabel: string, dataHash: string, backupNodeNum: number }],
+ *!/
+export const batchApprove = async (applyList: ApproveInfo[],
                               callBackFunc:CallBackFunc) => {
     const applyIds: string [] = []
     const days: string [] = []
@@ -239,13 +303,15 @@ export const batchApprove = async (applyList:[{applyId : string,days : string, a
     const _backupNodeNumArray: number [] = []
     const dataLabels : string[] = [];
     const dataHashes : string[] = [];
+    const dataStorageUrl : string[] = [];
     applyList.forEach(item => {
         applyIds.push(item.applyId)
         days.push(item.days)
         _userAccountIds.push(item.applyUserId)
         _backupNodeNumArray.push(item.backupNodeNum)
-        dataLabels.push(item.dataLabel)
-        dataHashes.push(item.dataHash)
+        dataLabels.push(item.fileName)
+        dataHashes.push(item.fileHash)
+        dataStorageUrl.push(item.fileStorageUrl)
     })
     const userInfo = await storage.getItem(cache_user_key);
     const _chainId = await getNetWorkChainId()
@@ -253,6 +319,7 @@ export const batchApprove = async (applyList:[{applyId : string,days : string, a
     const agentAccountId = userInfo.accountId;
     if (agentAccountAddress && agentAccountId) {
         const approveParam: batchApproveRequestData = {
+            dataStorageUrl: dataStorageUrl,
             dataHash: dataLabels, dataLabel: dataHashes,
             accountAddress: agentAccountAddress,
             accountId: agentAccountId,
@@ -268,15 +335,16 @@ export const batchApprove = async (applyList:[{applyId : string,days : string, a
         window.open(getAgentAddress() + "/approve?from=outside&data=" + encodeURIComponent(JSON.stringify(approveParam)));
         window.addEventListener("message", approveSuccessHandler.bind(this, callBackFunc));
     }
-};
+};*/
 
 /**
  * approve
  * @param applyId
  * @param applyUserAddress
  * @param applyUserId
- * @param dataLabel
- * @param dataHash
+ * @param fileName
+ * @param fileHash
+ * @param fileUrl
  * @param days
  * @param backupNodeNum
  * @param callBackFunc
@@ -284,8 +352,9 @@ export const batchApprove = async (applyList:[{applyId : string,days : string, a
 export const approve = async (applyId:string,
                               applyUserAddress:string,
                               applyUserId:string,
-                              dataLabel: string,
-                              dataHash: string,
+                              fileName: string,
+                              fileHash: string,
+                              fileUrl: string,
                               days:string,
                               backupNodeNum:number,
                               callBackFunc:CallBackFunc) => {
@@ -295,6 +364,7 @@ export const approve = async (applyId:string,
     const agentAccountId = userInfo.accountId;
     if (agentAccountAddress && agentAccountId) {
         const approveParam: batchApproveRequestData = {
+            dataStorageUrl: [fileUrl],
             accountAddress: agentAccountAddress,
             accountId: agentAccountId,
             redirectUrl: document.location.toString(),
@@ -303,8 +373,8 @@ export const approve = async (applyId:string,
             to: applyUserAddress,
             applyIds: [applyId],
             days: [days],
-            dataHash: [dataLabel],
-            dataLabel: [dataHash],
+            dataHash: [fileName],
+            dataLabel: [fileHash],
             userAccountIds: [applyUserId],
             backupNodeNum:[backupNodeNum],
             chainId: _chainId
@@ -328,10 +398,21 @@ const approveSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
  * download
  * @param fileId : string - The ID of the file to be downloaded.
  * @param fileName : string - The name of the file to be downloaded.
+ * @param fileHash: string - the file hash
  * @param applyUserAddress : string - The address of the user who has applied to download the file.
+ * @param ownerAddress : string - the owner of the file
+ * @param zkProof : string - the zk proof of the file
+ * @param encryptedDataSize - the size of encrypted file data
  * @param callBackFunc : CallBackFunc - A callback function that will be called with the response data from the server.
  */
-export const download = async (fileId:string, fileName:string, applyUserAddress:string, callBackFunc:CallBackFunc) => {
+export const download = async (fileId:string,
+                               fileName:string,
+                               fileHash: string,
+                               applyUserAddress:string,
+                               ownerAddress:string,
+                               zkProof: string,
+                               encryptedDataSize: string,
+                               callBackFunc:CallBackFunc) => {
 
     const keypair = getKeyPair()
     const publicKey = keypair.publicKey
@@ -349,6 +430,9 @@ export const download = async (fileId:string, fileName:string, applyUserAddress:
             redirectUrl: document.location.toString(),
             fileId: fileId,
             fileName: fileName,
+            dataHash: fileHash,
+            dataZKProof: zkProof,
+            encryptedDataSize: encryptedDataSize,
             from: agentAccountAddress,
             to: applyUserAddress,
             publicKey: publicKey,
@@ -411,6 +495,8 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
  *         address: string - file address
  *         thumbnail: string - file thumbnail
  *         owner: string - file owner
+ *         file_url: string - file storage url
+ *         address: string - the file hash in backend
  *         owner_id: string - file owner's account ID
  *         owner_avatar: string - file owner's avatar
  *         created_at: number - file upload timestamp
@@ -559,10 +645,7 @@ export const getUrsulaNumber = async () => {
         stakingUrsulaNum = result.data.data
     }
     let porterResult = await axios.get(getPorterServiceAddress() + '/include/ursulas')
-    let porterUrsulaNum = 0
-    if (porterResult.data.code == 0){
-        porterUrsulaNum = porterResult.data.data
-    }
+    let porterUrsulaNum = porterResult.data.result.total;
     let ursulaNum = stakingUrsulaNum > porterUrsulaNum?porterUrsulaNum:stakingUrsulaNum
     ursulaNum = ursulaNum > 10?5:Math.floor(ursulaNum/5);
     ursulaNum = ursulaNum == 0?1:ursulaNum

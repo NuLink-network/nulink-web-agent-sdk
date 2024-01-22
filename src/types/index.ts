@@ -20,6 +20,9 @@ export type decryptionRequestData = {
     redirectUrl: string
     fileId: string
     fileName: string
+    dataHash: string
+    dataZKProof: string
+    encryptedDataSize: string
     from: string
     to: string
     publicKey: string
@@ -31,6 +34,8 @@ export type applyRequestData = {
     accountId: string
     redirectUrl: string
     fileName: string
+    dataHash: string
+    dataStorageUrl: string
     fileId: string
     owner: string
     user: string
@@ -61,8 +66,9 @@ export type batchApproveRequestData = {
     to?: string | null
     applyIds: string []
     days: string []
-    dataLabel: string [],
-    dataHash: string [],
+    dataLabel: string []
+    dataHash: string []
+    dataStorageUrl: string[]
     userAccountIds: string []
     backupNodeNum:number[]
     chainId: number
@@ -158,16 +164,27 @@ export type transactionResponseData = {
 }
 
 export type ApplyInfo = {
-    dataHash: string
     fileName: string
     fileId: string
     fileCreatorAddress: string
+    fileUrl: string
+    fileHash: string
     usageDays: number
 }
 
+export type ApproveInfo = {
+    applyId : string
+    applyUserId: string
+    fileName: string
+    fileHash: string
+    fileUrl: string
+    days : string
+    backupNodeNum: number
+}
+
 export type UploadData = {
-    dataLabel: string
-    content: ArrayBuffer
+    dataLabel : string,
+    fileBinaryArrayBuffer: Blob
 }
 
 export enum NETWORK_LIST {

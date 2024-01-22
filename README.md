@@ -309,12 +309,9 @@ const fileDownload = async () => {
   const fileDownloadCallBack = async (data) => {
     try {
       if (!!data && data.url) {
-        const arraybuffer = await getData(decodeURIComponent(data.url))
-        const blob = new Blob([arraybuffer], { type: "arraybuffer" });
-        let url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.style.display = "none";
-        link.href = url;
+        link.href = data.url;
         link.setAttribute("download", data.fileName);
         document.body.appendChild(link);
         link.click();
