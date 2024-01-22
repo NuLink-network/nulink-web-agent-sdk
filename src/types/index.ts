@@ -37,6 +37,7 @@ export type applyRequestData = {
     dataHash: string
     dataStorageUrl: string
     fileId: string
+    zkProof: string
     owner: string
     user: string
     days: number
@@ -169,6 +170,7 @@ export type ApplyInfo = {
     fileCreatorAddress: string
     fileUrl: string
     fileHash: string
+    zkProof: string
     usageDays: number
 }
 

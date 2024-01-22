@@ -110,7 +110,7 @@ export const upload = async (callBackFunc:CallBackFunc) => {
 }
 
 /**
- * upload ArrayBuffer
+ * upload data
  * @param uploadData : UploadData
  * type UploadData = {
  *     dataLabel : string,
@@ -118,7 +118,7 @@ export const upload = async (callBackFunc:CallBackFunc) => {
  * }
  * @param callBackFunc
  */
-export const uploadArrayBuffer = async (uploadData: UploadData, callBackFunc:CallBackFunc) => {
+export const uploadData = async (uploadData: UploadData, callBackFunc:CallBackFunc) => {
     const userInfo = await storage.getItem(cache_user_key);
     const _chainId = await getNetWorkChainId()
     const queryData: requisiteQueryData = {
@@ -127,7 +127,7 @@ export const uploadArrayBuffer = async (uploadData: UploadData, callBackFunc:Cal
         redirectUrl: document.location.toString(),
         chainId: _chainId
     };
-    const agentWindow = window.open(getAgentAddress() + "/upload-file?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
+    const agentWindow = window.open(getAgentAddress() + "/upload-view?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
     function handleMessageEvent(ev) {
         if (ev.data == "agent_success") {
             if (agentWindow && !agentWindow.closed) {
@@ -164,7 +164,7 @@ export const uploadDataBatch = async (dataList: UploadData[], callBackFunc:CallB
         redirectUrl: document.location.toString(),
         chainId: await getNetWorkChainId()
     }
-    const agentWindow = window.open(getAgentAddress() + "/upload-file?from=outside&data=" + encodeURIComponent(JSON.stringify(requestData)));
+    const agentWindow = window.open(getAgentAddress() + "/upload-view?from=outside&data=" + encodeURIComponent(JSON.stringify(requestData)));
 
     function handleMessageEvent(ev) {
         if (ev.data == "agent_success") {
@@ -201,7 +201,7 @@ export const uploadFileBatch = async (files: File[], callBackFunc:CallBackFunc) 
 
     const dataList = await convertFileToUploadData(files)
 
-    const agentWindow = window.open(getAgentAddress() + "/upload-file?from=outside&data=" + encodeURIComponent(JSON.stringify(requestData)));
+    const agentWindow = window.open(getAgentAddress() + "/upload-view?from=outside&data=" + encodeURIComponent(JSON.stringify(requestData)));
 
     function handleMessageEvent(ev) {
         if (ev.data == "agent_success") {
@@ -241,6 +241,7 @@ const uploadSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
  *     fileCreatorAddress: string
  *     fileUrl: string
  *     fileHash: string
+ *     zkProof: string
  *     usageDays: number
  * }
  * @param callBackFunc
@@ -259,6 +260,7 @@ export const apply = async (applyInfo: ApplyInfo, callBackFunc:CallBackFunc) => 
             dataHash: applyInfo.fileHash,
             dataStorageUrl: applyInfo.fileUrl,
             fileId: applyInfo.fileId,
+            zkProof: applyInfo.zkProof,
             owner: applyInfo.fileCreatorAddress,
             user: userInfo.accountAddress,
             days: applyInfo.usageDays,
