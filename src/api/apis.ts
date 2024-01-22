@@ -401,7 +401,6 @@ const approveSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
  * @param fileId : string - The ID of the file to be downloaded.
  * @param fileName : string - The name of the file to be downloaded.
  * @param fileHash: string - the file hash
- * @param applyUserAddress : string - The address of the user who has applied to download the file.
  * @param ownerAddress : string - the owner of the file
  * @param zkProof : string - the zk proof of the file
  * @param encryptedDataSize - the size of encrypted file data
@@ -410,9 +409,9 @@ const approveSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
 export const download = async (fileId:string,
                                fileName:string,
                                fileHash: string,
-                               applyUserAddress:string,
                                ownerAddress:string,
                                zkProof: string,
+                               fileUrl: string,
                                encryptedDataSize: string,
                                callBackFunc:CallBackFunc) => {
 
@@ -434,9 +433,10 @@ export const download = async (fileId:string,
             fileName: fileName,
             dataHash: fileHash,
             dataZKProof: zkProof,
+            dataStorageUrl: fileUrl,
             encryptedDataSize: encryptedDataSize,
-            from: agentAccountAddress,
-            to: applyUserAddress,
+            owner: ownerAddress,
+            user: agentAccountAddress,
             publicKey: publicKey,
             chainId: _chainId
         }

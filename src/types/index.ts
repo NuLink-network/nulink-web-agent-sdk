@@ -23,8 +23,9 @@ export type decryptionRequestData = {
     dataHash: string
     dataZKProof: string
     encryptedDataSize: string
-    from: string
-    to: string
+    dataStorageUrl: string
+    owner: string
+    user: string
     publicKey: string
     chainId: number
 }
