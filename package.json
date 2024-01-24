@@ -1,6 +1,6 @@
 {
   "name": "@nulink_network/nulink-web-agent-access-sdk",
-  "version": "0.5.4",
+  "version": "0.5.47",
   "main": "dist/index.js",
   "typings": "build/index.d.ts",
   "repository": "https://github.com/NuLink-network/nulink-web-agent-access-sdk.git",
@@ -14,7 +14,8 @@
     "encrypt-with-password": "^1.0.0",
     "rimraf": "^5.0.0",
     "ts-randomstring": "^1.0.8",
-    "tsc": "^2.0.4"
+    "tsc": "^2.0.4",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@types/node": "^18.16.3"

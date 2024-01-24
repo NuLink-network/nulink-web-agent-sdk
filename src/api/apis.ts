@@ -13,7 +13,7 @@ import { encrypt, decrypt } from "./passwordEncryption";
 import { decrypt as aesDecryt } from "../utils/crypto";
 import { axios } from "../utils/axios";
 
-export const cache_user_key: string = "userinfo";
+export const cache_user_key: string = "user_info";
 export const cache_chain_id: string = "chain_id";
 
 const agentAddress = nulink_agent_config.address
@@ -101,44 +101,6 @@ const loginSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
 }
 
 /**
- * upload data
- * @param uploadData : UploadData
- * type UploadData = {
- *     dataLabel : string,
- *     fileBinaryArrayBuffer: Blob
- * }
- * @param callBackFunc
- */
-export const uploadData = async (uploadData: UploadData, callBackFunc:CallBackFunc) => {
-    const userInfo = await storage.getItem(cache_user_key);
-    const _chainId = await getNetWorkChainId()
-    const queryData: requisiteQueryData = {
-        accountAddress: userInfo.accountAddress,
-        accountId: userInfo.accountId,
-        redirectUrl: document.location.toString(),
-        chainId: _chainId
-    };
-    const agentWindow = window.open(getAgentAddress() + "/upload-view?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
-    function handleMessageEvent(ev) {
-        if (ev.data == "agent_success") {
-            if (agentWindow && !agentWindow.closed) {
-                console.log("agent window is opening");
-                const message:any = {
-                    action: 'upload',
-                    fileList: [uploadData]
-                }
-                agentWindow.postMessage(message, '*');
-                console.log("send message finish")
-                window.removeEventListener("message", handleMessageEvent);
-            }
-        }
-    }
-
-    window.addEventListener("message", handleMessageEvent);
-    window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
-}
-
-/**
  *  Upload Data
  * @param dataList : UploadData[]
  * type UploadData = {
@@ -148,6 +110,26 @@ export const uploadData = async (uploadData: UploadData, callBackFunc:CallBackFu
  * @param callBackFunc
  */
 export const uploadDataBatch = async (dataList: UploadData[], callBackFunc:CallBackFunc) => {
+    if (dataList.length < 1){
+        throw new Error("The uploaded data must not be empty")
+    }
+    if (dataList.length > 5){
+        throw new Error("The uploaded data cannot exceed five")
+    }
+    dataList.forEach(data => {
+        if (data.fileBinaryArrayBuffer instanceof ArrayBuffer){
+            if (data.fileBinaryArrayBuffer.byteLength > 5242880){
+                throw new Error("The maximum size for pre-uploaded data must not exceed 5 MB")
+            }
+        }
+        if (data.fileBinaryArrayBuffer instanceof Blob){
+            if (data.fileBinaryArrayBuffer.size > 5242880){
+                throw new Error("The maximum size for pre-uploaded data must not exceed 5 MB")
+            }
+        }
+
+    })
+
     const userInfo = await storage.getItem(cache_user_key);
     const requestData = {
         accountAddress: userInfo.accountAddress,
@@ -160,7 +142,6 @@ export const uploadDataBatch = async (dataList: UploadData[], callBackFunc:CallB
     function handleMessageEvent(ev) {
         if (ev.data == "agent_success") {
             if (agentWindow && !agentWindow.closed) {
-                console.log("agent window is opening");
                 const message:any = {
                     action: 'upload',
                     fileList: dataList
@@ -182,6 +163,17 @@ export const uploadDataBatch = async (dataList: UploadData[], callBackFunc:CallB
  * @param callBackFunc
  */
 export const uploadFileBatch = async (files: File[], callBackFunc:CallBackFunc) => {
+    if (files.length < 1){
+        throw new Error("The uploaded data must not be empty")
+    }
+    if (files.length > 5){
+        throw new Error("The uploaded data cannot exceed five")
+    }
+    files.forEach(data => {
+        if (data.size > 5242880){
+            throw new Error("The maximum size for pre-uploaded data must not exceed 5 MB")
+        }
+    })
     const userInfo = await storage.getItem(cache_user_key);
     const requestData = {
         accountAddress: userInfo.accountAddress,
@@ -197,7 +189,6 @@ export const uploadFileBatch = async (files: File[], callBackFunc:CallBackFunc) 
     function handleMessageEvent(ev) {
         if (ev.data == "agent_success") {
             if (agentWindow && !agentWindow.closed) {
-                console.log("agent window is opening");
                 const message:any = {
                     action: 'upload',
                     fileList: dataList
@@ -391,22 +382,12 @@ const approveSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
  * download
  * @param fileId : string - The ID of the file to be downloaded.
  * @param fileName : string - The name of the file to be downloaded.
- * @param fileHash: string - the file hash
+ * @param fileHash : string - The hash of the file to be downloaded.
  * @param ownerAddress : string - the owner of the file
  * @param zkProof : string - the zk proof of the file
+ * @param fileUrl : string
  * @param encryptedDataSize - the size of encrypted file data
  * @param callBackFunc : CallBackFunc - A callback function that will be called with the response data from the server.
- * @return {
- *     accountAddress: string
- *     accountId: string
- *     fileName: string
- *     action: 'decrypted'
- *     subAction?: string
- *     result: 'success' | 'failed'
- *     redirectUrl: string
- *     arrayBuffer?: string
- *     errorMsg?: any
- * }
  */
 export const download = async (fileId:string,
                                fileName:string,
@@ -415,13 +396,13 @@ export const download = async (fileId:string,
                                zkProof: string,
                                fileUrl: string,
                                encryptedDataSize: string,
-                               callBackFunc:CallBackFunc) => {
+                               callBackFunc:CallBackFunc)=> {
 
     const keypair = getKeyPair()
     const publicKey = keypair.publicKey
     const encryptedKeypair = encrypt(JSON.stringify(keypair));
     await localStorage.setItem('encryptedKeypair', encryptedKeypair)
-    const userInfo = storage.getItem("userinfo");
+    const userInfo = storage.getItem(cache_user_key);
     const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress
     const agentAccountId = userInfo.accountId
@@ -658,7 +639,7 @@ export const getUrsulaNumber = async () => {
     if (result.data.code == 0){
         stakingUrsulaNum = result.data.data
     }
-    let porterResult = await axios.get(getPorterServiceAddress() + '/include/ursulas')
+    let porterResult = await axios.post(getPorterServiceAddress() + '/include/ursulas', {})
     let porterUrsulaNum = porterResult.data.result.total;
     let ursulaNum = stakingUrsulaNum > porterUrsulaNum?porterUrsulaNum:stakingUrsulaNum
     ursulaNum = Math.min(5,Math.floor(ursulaNum/5))
