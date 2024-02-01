@@ -474,7 +474,7 @@ const fileDownload = async () => {
         detailItem.file_name,
         detailItem.file_hash,
         detailItem.creator_address,
-        detailItem.file_zk_poof,
+        detailItem.file_zk_proof,
         detailItem.file_url,
         detailItem.file_encrypted_size,
         fileDownloadCallBack,
@@ -503,7 +503,7 @@ const fileDownloadCallBack = async (data) => {
 ### getFileList
 
 ```typescript
-getFileDetail(accountId:string, include:boolean, desc:boolean = false, pageNum:number, pageSize:number)
+getFileList(accountId:string, include:boolean, desc:boolean = false, pageNum:number, pageSize:number)
 ```
 Get the list of files belonging to other users.
 
@@ -523,7 +523,7 @@ Get the list of files belonging to other users.
         file_name: string - the file name
         file_hash: string - the file hash
         file_raw_size: string - the original file size
-        file_zkproof: string - the zero-knowledge proof of file
+        file_zk_proof: string - the zero-knowledge proof of file
         file_encrypted_size: string - The size of the encrypted file
         category: string - the file category/type
         format: string - file format
@@ -571,7 +571,7 @@ get file details
     file_name: string - File name
     file_hash: string - the file hash
     file_raw_size: string - the original file size
-    file_zkproof: string - the zero-knowledge proof of file
+    file_zk_proof: string - the zero-knowledge proof of file
     file_encrypted_size: string - The size of the encrypted file
     thumbnail: string - File thumbnail
     creator: string - Owner of the file (policy creator)
@@ -632,7 +632,7 @@ Function to fetch send application files
     file_name: string - File name
     file_hash: string - the file hash
     file_raw_size: string - the original file size
-    file_zkproof: string - the zero-knowledge proof of file
+    file_zk_proof: string - the zero-knowledge proof of file
     file_encrypted_size: string - The size of the encrypted file
     thumbnail: string - File thumbnail
     apply_id: number - Application record ID
@@ -686,7 +686,7 @@ Function to fetch the received application files
     file_name: string - File name
     file_hash: string - the file hash
     file_raw_size: string - the original file size
-    file_zkproof: string - the zero-knowledge proof of file
+    file_zk_proof: string - the zero-knowledge proof of file
     file_encrypted_size: string - The size of the encrypted file
     thumbnail: string - File thumbnail
     apply_id: number - Application record ID
