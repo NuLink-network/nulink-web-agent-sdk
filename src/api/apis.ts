@@ -331,6 +331,27 @@ export const apply = async (dataName: string,
                             zkProof: string,
                             usageDays: number,
                             callBackFunc:CallBackFunc) => {
+    if(isBlank(dataName)){
+        throw new Error("dataName cannot be empty")
+    }
+    if(isBlank(dataId)){
+        throw new Error("dataId cannot be empty")
+    }
+    if(isBlank(dataCreatorAddress)){
+        throw new Error("dataCreatorAddress cannot be empty")
+    }
+    if(isBlank(dataUrl)){
+        throw new Error("dataUrl cannot be empty")
+    }
+    if(isBlank(dataHash)){
+        throw new Error("dataHash cannot be empty")
+    }
+    if(isBlank(zkProof)){
+        throw new Error("zkProof cannot be empty")
+    }
+    if(isBlank(usageDays)){
+        throw new Error("usageDays cannot be empty")
+    }
     const userInfo = await storage.getItem(cache_user_key);
     const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress;
@@ -428,9 +449,9 @@ export const batchApprove = async (applyList: ApproveInfo[],
  * @param applyId
  * @param applyUserAddress
  * @param applyUserId
- * @param fileName
- * @param fileHash
- * @param fileUrl
+ * @param dataName
+ * @param dataHash
+ * @param dataUrl
  * @param days
  * @param backupNodeNum
  * @param callBackFunc
@@ -444,6 +465,30 @@ export const approve = async (applyId:string,
                               days:string,
                               backupNodeNum:number,
                               callBackFunc:CallBackFunc) => {
+    if(isBlank(applyId)){
+        throw new Error("applyId cannot be empty")
+    }
+    if(isBlank(applyUserAddress)){
+        throw new Error("applyUserAddress cannot be empty")
+    }
+    if(isBlank(applyUserId)){
+        throw new Error("applyUserId cannot be empty")
+    }
+    if(isBlank(dataName)){
+        throw new Error("dataName cannot be empty")
+    }
+    if(isBlank(dataHash)){
+        throw new Error("dataHash cannot be empty")
+    }
+    if(isBlank(dataUrl)){
+        throw new Error("dataUrl cannot be empty")
+    }
+    if(isBlank(days)){
+        throw new Error("days cannot be empty")
+    }
+    if(isBlank(backupNodeNum)){
+        throw new Error("backupNodeNum cannot be empty")
+    }
     const userInfo = await storage.getItem(cache_user_key);
     const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress;
@@ -500,6 +545,27 @@ export const download = async (dataId:string,
                                encryptedDataSize: string,
                                callBackFunc:CallBackFunc)=> {
 
+    if(isBlank(dataId)){
+        throw new Error("dataId cannot be empty")
+    }
+    if(isBlank(dataName)){
+        throw new Error("dataName cannot be empty")
+    }
+    if(isBlank(dataHash)){
+        throw new Error("dataHash cannot be empty")
+    }
+    if(isBlank(ownerAddress)){
+        throw new Error("ownerAddress cannot be empty")
+    }
+    if(isBlank(zkProof)){
+        throw new Error("zkProof cannot be empty")
+    }
+    if(isBlank(dataUrl)){
+        throw new Error("dataUrl cannot be empty")
+    }
+    if(isBlank(encryptedDataSize)){
+        throw new Error("encryptedDataSize cannot be empty")
+    }
     const keypair = getKeyPair()
     const publicKey = keypair.publicKey
     const encryptedKeypair = encrypt(JSON.stringify(keypair));
