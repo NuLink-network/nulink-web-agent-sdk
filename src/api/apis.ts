@@ -15,7 +15,7 @@ import { decrypt as aesDecryt } from "../utils/crypto";
 import { axios } from "../utils/axios";
 import {isBlank} from "../utils/null";
 
-export const cache_user_key: string = "user_info";
+export const cache_user_key: string = "nulink_user_info";
 export const cache_chain_id: string = "chain_id";
 
 const agentAddress = nulink_agent_config.address
