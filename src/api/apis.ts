@@ -638,7 +638,9 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
 /**
  * get file list
  * @param accountId : string - ID of the currently logged-in user
+ * @param fileName : string - File name, supports fuzzy matching, can be empty.
  * @param include : boolean - If include=false, exclude the files belonging to the current account; otherwise, the files belonging to the current user will be placed at the beginning of the list.
+ * @param format : string - the format of file,can be empty.
  * @param desc : boolean - Whether to sort in descending order by upload time
  * @param pageNum : number - page number (starting from 1)
  * @param pageSize : number - page size
@@ -667,9 +669,9 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
  * }
  */
 export const getFileList = async (
-    accountId:string, include:boolean, desc:boolean = false, pageNum:number, pageSize:number
+    accountId:string, include:boolean, fileName: string, format:string, desc:boolean = false, pageNum:number, pageSize:number
 ): Promise<FileData> => {
-    let result = await axios.post(getAgentBackendAddress() + '/file/others-list', {account_id: accountId, include: include, desc:desc, paginate: {page: pageNum, page_size: pageSize}})
+    let result = await axios.post(getAgentBackendAddress() + '/file/others-list', {account_id: accountId, include: include, file_name: fileName, format:format, desc:desc, paginate: {page: pageNum, page_size: pageSize}})
     return result.data
 };
 
