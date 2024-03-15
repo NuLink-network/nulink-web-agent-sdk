@@ -14,6 +14,7 @@ import { encrypt, decrypt } from "./passwordEncryption";
 import { decrypt as aesDecryt } from "../utils/crypto";
 import { axios } from "../utils/axios";
 import {isBlank} from "../utils/null";
+import {AxiosResponse} from "axios";
 
 export const cache_user_key: string = "nulink_user_info";
 export const cache_chain_id: string = "chain_id";
@@ -77,6 +78,8 @@ const getPorterServiceAddress = () => {
     return nulink_agent_config.porter_url.endsWith('/')? nulink_agent_config.porter_url.substring(0, nulink_agent_config.porter_url.length -1) : nulink_agent_config.porter_url
 }
 
+let loginListener: { (e: any): Promise<void>; (this: Window, ev: MessageEvent<any>): any; (this: Window, ev: MessageEvent<any>): any; };
+
 export const connect = async (callBackFunc:CallBackFunc) => {
     const _chainId = await getNetWorkChainId()
     const queryData = {
@@ -84,7 +87,8 @@ export const connect = async (callBackFunc:CallBackFunc) => {
         chainId: _chainId
     };
     window.open(getAgentAddress() + "/guide?from=outside&data=" + encodeURIComponent(JSON.stringify(queryData)))
-    window.addEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
+    loginListener = loginSuccessHandler.bind(this, callBackFunc);
+    window.addEventListener("message", loginListener)
 }
 
 type CallBackFunc =  ( responseData?:any ) => Promise<any>;
@@ -102,10 +106,13 @@ const loginSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
             await storage.setItem(cache_user_key, data);
             await storage.setItem(cache_chain_id, data.chainId);
             await callBackFunc(data)
-            window.removeEventListener("message", loginSuccessHandler.bind(this, callBackFunc))
+            window.removeEventListener("message", loginListener)
         }
     }
 }
+
+let uploadDataListener: { (e: any): Promise<void>; (this: Window, ev: MessageEvent<any>): any; (this: Window, ev: MessageEvent<any>): any; };
+
 
 /**
  *  Upload Data
@@ -154,7 +161,8 @@ export const uploadData = async (_uploadData: UploadData, callBackFunc:CallBackF
     }
 
     window.addEventListener("message", handleMessageEvent);
-    window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
+    uploadDataListener = uploadSuccessHandler.bind(this, callBackFunc);
+    window.addEventListener("message", uploadDataListener);
 }
 
 /**
@@ -211,7 +219,8 @@ export const uploadDataBatch = async (dataList: UploadData[], callBackFunc:CallB
     }
 
     window.addEventListener("message", handleMessageEvent);
-    window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
+    uploadDataListener = uploadSuccessHandler.bind(this, callBackFunc);
+    window.addEventListener("message", uploadDataListener);
 }
 
 /**
@@ -251,7 +260,8 @@ export const uploadFile = async (file: File, callBackFunc:CallBackFunc) => {
     }
 
     window.addEventListener("message", handleMessageEvent);
-    window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
+    uploadDataListener = uploadSuccessHandler.bind(this, callBackFunc);
+    window.addEventListener("message", uploadDataListener);
 }
 
 /**
@@ -298,7 +308,8 @@ export const uploadFileBatch = async (files: File[], callBackFunc:CallBackFunc) 
     }
 
     window.addEventListener("message", handleMessageEvent);
-    window.addEventListener("message", uploadSuccessHandler.bind(this, callBackFunc));
+    uploadDataListener = uploadSuccessHandler.bind(this, callBackFunc);
+    window.addEventListener("message", uploadDataListener);
 }
 
 const uploadSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
@@ -306,10 +317,13 @@ const uploadSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     if (responseData) {
         if (responseData.action == "upload" && responseData.result == "success") {
             await callBackFunc(responseData)
-            window.removeEventListener("message", uploadSuccessHandler.bind(this, callBackFunc))
+            window.removeEventListener("message", uploadDataListener)
         }
     }
 };
+
+let applyListener: { (e: any): Promise<void>; (this: Window, ev: MessageEvent<any>): any; (this: Window, ev: MessageEvent<any>): any; };
+
 
 /**
  * apply
@@ -372,7 +386,8 @@ export const apply = async (dataName: string,
             chainId: _chainId
         };
         window.open( getAgentAddress() + "/request-files?from=outside&data=" + encodeURIComponent(JSON.stringify(applyParam)));
-        window.addEventListener("message", applySuccessHandler.bind(this, callBackFunc));
+        applyListener = applySuccessHandler.bind(this, callBackFunc);
+        window.addEventListener("message", applyListener);
     } else {
         throw new Error("Unlink user information not found, please log in first")
     }
@@ -383,7 +398,7 @@ const applySuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     if (responseData) {
         if (responseData.action == "apply" && responseData.result == "success") {
             await callBackFunc(responseData);
-            window.removeEventListener("message", applySuccessHandler.bind(this, callBackFunc));
+            window.removeEventListener("message", applyListener);
         }
     }
 }
@@ -444,6 +459,7 @@ export const batchApprove = async (applyList: ApproveInfo[],
     }
 };*/
 
+let approveListener: { (e: any): Promise<void>; (this: Window, ev: MessageEvent<any>): any; (this: Window, ev: MessageEvent<any>): any; };
 /**
  * approve
  * @param applyId
@@ -511,7 +527,8 @@ export const approve = async (applyId:string,
             chainId: _chainId
         };
         window.open(getAgentAddress()+ "/approve?from=outside&data=" + encodeURIComponent(JSON.stringify(approveParam)));
-        window.addEventListener("message", approveSuccessHandler.bind(this, callBackFunc));
+        approveListener = approveSuccessHandler.bind(this, callBackFunc);
+        window.addEventListener("message", approveListener);
     }
 };
 
@@ -520,10 +537,12 @@ const approveSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => {
     if (responseData) {
         if (responseData.action == "approve") {
             await callBackFunc(responseData)
-            window.removeEventListener("message", approveSuccessHandler.bind(this, callBackFunc));
+            window.removeEventListener("message", approveListener);
         }
     }
 };
+
+let downloadListener: { (e: any): Promise<void>; (this: Window, ev: MessageEvent<any>): any; (this: Window, ev: MessageEvent<any>): any; };
 
 /**
  * download
@@ -592,7 +611,8 @@ export const download = async (dataId:string,
             chainId: _chainId
         }
         window.open(getAgentAddress() + "/request-authorization?from=outside&data=" + encodeURIComponent(JSON.stringify(decryptionRequestData)))
-        window.addEventListener("message", authorizationSuccessHandler.bind(this, callBackFunc))
+        downloadListener = authorizationSuccessHandler.bind(this, callBackFunc);
+        window.addEventListener("message", downloadListener)
     }
 };
 
@@ -620,7 +640,7 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
                         if (response.action == 'decrypted') {
                             response.arrayBuffer = stringToArrayBuffer(response.arrayBuffer)
                             await callBackFunc(response)
-                            window.removeEventListener("message", authorizationSuccessHandler.bind(this, callBackFunc))
+                            window.removeEventListener("message", downloadListener)
                         }
                     }
                 } else {
@@ -646,8 +666,12 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
  * @param pageSize : number - page size
  * @return
  * {
- *     total: number
- *     list: [{
+ *   "code": 2000,
+ *   "msg": "Success",
+ *   "data":
+ *       {
+ *         total: number
+ *         list: [{
  *         file_id: string - the file ID
  *         file_name: string - the file name
  *         file_hash: string - the file hash
@@ -665,14 +689,15 @@ const authorizationSuccessHandler = async (callBackFunc:CallBackFunc, e:any) => 
  *         owner_id: string - file owner's account ID
  *         owner_avatar: string - file owner's avatar
  *         created_at: number - file upload timestamp
- *     }]
+ *         }]
+ *      }
  * }
  */
 export const getFileList = async (
     accountId:string, include:boolean, fileName: string, format:string, desc:boolean = false, pageNum:number, pageSize:number
-): Promise<FileData> => {
+): Promise<unknown> => {
     let result = await axios.post(getAgentBackendAddress() + '/file/others-list', {account_id: accountId, include: include, file_name: fileName, format:format, desc:desc, paginate: {page: pageNum, page_size: pageSize}})
-    return result.data
+    return result
 };
 
 /**
@@ -681,44 +706,48 @@ export const getFileList = async (
  * @param fileUserAccountId  : string - The file user's account ID, which refers to the current user's account ID.
  * @return
  * {
- *     file_id: string - File ID
- *     file_name: string - File name
- *     file_hash: string - the file hash
- *     file_raw_size: string - the original file size
- *     file_zkproof: string - the zero-knowledge proof of file
- *     file_encrypted_size: string - The size of the encrypted file
- *     thumbnail: string - File thumbnail
- *     creator: string - Owner of the file (policy creator)
- *     creator_id: string - Owner ID of the file (policy creator ID)
- *     creator_avatar: string - Owner avatar of the file (policy creator avatar)
- *     creator_address: string - Ethereum address of the file owner (policy creator's address)
- *     file_created_at: number - File upload timestamp
- *     apply_id: number - Application record ID
- *     proposer_address: string - Ethereum address of the file user (policy user's address)
- *     status: number - Application status, 0: not applied, 1: applying, 2: approved, 3: rejected
- *     apply_start_at: string - Application start timestamp (policy start timestamp)
- *     apply_end_at: string - Application end timestamp (policy end timestamp)
- *     apply_created_at: string - Submit application timestamp
- *     policy_id: number - Policy ID
- *     hrac: string - Policy HRAC
- *     consumer: string - Policy user (applicant, file user)
- *     consumer_id: string - Policy user ID
- *     gas: string - Policy gas
- *     tx_hash: string - Policy transaction hash
- *     policy_created_at: string - Policy creation timestamp
- *     file_ipfs_address: string - File IPFS address
- *     policy_encrypted_pk: string - Encrypted public key of the policy
- *     encrypted_treasure_map_ipfs_address: string - Policy treasure map address
- *     alice_verify_pk: string - File owner's Verify public key
+ *   "code": 2000,
+ *   "msg": "Success",
+ *   "data":
+ *      {
+ *         file_name: string - File name
+ *         file_hash: string - the file hash
+ *         file_raw_size: string - the original file size
+ *         file_zkproof: string - the zero-knowledge proof of file
+ *         file_encrypted_size: string - The size of the encrypted file
+ *         thumbnail: string - File thumbnail
+ *         creator: string - Owner of the file (policy creator)
+ *         creator_id: string - Owner ID of the file (policy creator ID)
+ *         creator_avatar: string - Owner avatar of the file (policy creator avatar)
+ *         creator_address: string - Ethereum address of the file owner (policy creator's address)
+ *         file_created_at: number - File upload timestamp
+ *         apply_id: number - Application record ID
+ *         proposer_address: string - Ethereum address of the file user (policy user's address)
+ *         status: number - Application status, 0: not applied, 1: applying, 2: approved, 3: rejected
+ *         apply_start_at: string - Application start timestamp (policy start timestamp)
+ *         apply_end_at: string - Application end timestamp (policy end timestamp)
+ *         apply_created_at: string - Submit application timestamp
+ *         policy_id: number - Policy ID
+ *         hrac: string - Policy HRAC
+ *         consumer: string - Policy user (applicant, file user)
+ *         consumer_id: string - Policy user ID
+ *         gas: string - Policy gas
+ *         tx_hash: string - Policy transaction hash
+ *         policy_created_at: string - Policy creation timestamp
+ *         file_ipfs_address: string - File IPFS address
+ *         policy_encrypted_pk: string - Encrypted public key of the policy
+ *         encrypted_treasure_map_ipfs_address: string - Policy treasure map address
+ *         alice_verify_pk: string - File owner's Verify public key
+ *      }
  * }
  */
 export const getFileDetail = async (
     fileId: string,
     fileUserAccountId: string
-): Promise<FileData> => {
+): Promise<unknown> => {
     const _chainId = await getNetWorkChainId();
     let result = await axios.post(getAgentBackendAddress() + '/file/detail', {consumer_id: fileUserAccountId, file_id: fileId, chain_id: _chainId})
-    return result.data
+    return result
 };
 
 /**
@@ -728,37 +757,40 @@ export const getFileDetail = async (
  * @param pageNum : number - the page number
  * @param pageSize : number - the page size
  * @return
- * [{
- *     file_id: string - File ID
- *     file_name: string - File name
- *     file_hash: string - the file hash
- *     file_raw_size: string - the original file size
- *     file_zkproof: string - the zero-knowledge proof of file
- *     file_encrypted_size: string - The size of the encrypted file
- *     thumbnail: string - File thumbnail
- *     apply_id: number - Application record ID
- *     proposer: string - Applicant name
- *     proposer_id: string - Applicant account ID
- *     proposer_address: string - Applicant's address
- *     file_owner: string - File owner name
- *     file_owner_id: string - File owner account ID
- *     file_owner_address: string - File owner's address
- *     status: number - Application status, 1: applying, 2: approved, 3: rejected
- *     remark: string - Approval comment or remark
- *     start_at: number - Application start timestamp
- *     end_at: number - Application end timestamp
- *     created_at: number - Application timestamp
- *     policy_id: number - Policy ID
- *     policy_label_id: string - Policy label ID
- *     hrac: string - Policy HRAC code
- * }]
+ * {
+ *   "code": 2000,
+ *   "msg": "Success",
+ *   "data":
+ *       {
+ *         total: number
+ *         list: [{
+ *         file_id: string - the file ID
+ *         file_name: string - the file name
+ *         file_hash: string - the file hash
+ *         file_raw_size: string - the original file size
+ *         file_zkproof: string - the zero-knowledge proof of file
+ *         file_encrypted_size: string - The size of the encrypted file
+ *         category: string - the file category/type
+ *         format: string - file format
+ *         suffix: string - file suffix
+ *         address: string - file address
+ *         thumbnail: string - file thumbnail
+ *         owner: string - file owner
+ *         file_url: string - file storage url
+ *         address: string - the file hash in backend
+ *         owner_id: string - file owner's account ID
+ *         owner_avatar: string - file owner's avatar
+ *         created_at: number - file upload timestamp
+ *         }]
+ *      }
+ * }
  */
 export const getSendApplyFiles = async (proposerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
     const _chainId = await getNetWorkChainId();
     let result =  await axios.post(getAgentBackendAddress() + '/apply/list', {
         proposer_id: proposerId, status: status, paginate: {page: pageNum, page_size: pageSize}, chain_id: _chainId
     })
-    return result.data
+    return result
 }
 
 /**
@@ -768,28 +800,32 @@ export const getSendApplyFiles = async (proposerId: string, status:number = 0, p
  * @param pageNum : number - the page number
  * @param pageSize : number - the page size
  * @return {
- *     file_id: string - File ID
- *     file_name: string - File name
- *     file_hash: string - the file hash
- *     file_raw_size: string - the original file size
- *     file_zkproof: string - the zero-knowledge proof of file
- *     file_encrypted_size: string - The size of the encrypted file
- *     thumbnail: string - File thumbnail
- *     apply_id: number - Application record ID
- *     proposer: string - Applicant name
- *     proposer_id: string - Applicant account ID
- *     proposer_address: string - Applicant's address
- *     file_owner: string - File owner name
- *     file_owner_id: string - File owner account ID
- *     file_owner_address: string - File owner's address
- *     status: number - Application status, 1: applying, 2: approved, 3: rejected
- *     remark: string - Approval comment or remark
- *     start_at: number - Application start timestamp
- *     end_at: number - Application end timestamp
- *     created_at: number - Application timestamp
- *     policy_id: number - Policy ID
- *     policy_label_id: string - Policy label ID
- *     hrac: string - Policy HRAC code
+ * {
+ *   "code": 2000,
+ *   "msg": "Success",
+ *   "data":
+ *       {
+ *         total: number
+ *         list: [{
+ *         file_id: string - the file ID
+ *         file_name: string - the file name
+ *         file_hash: string - the file hash
+ *         file_raw_size: string - the original file size
+ *         file_zkproof: string - the zero-knowledge proof of file
+ *         file_encrypted_size: string - The size of the encrypted file
+ *         category: string - the file category/type
+ *         format: string - file format
+ *         suffix: string - file suffix
+ *         address: string - file address
+ *         thumbnail: string - file thumbnail
+ *         owner: string - file owner
+ *         file_url: string - file storage url
+ *         address: string - the file hash in backend
+ *         owner_id: string - file owner's account ID
+ *         owner_avatar: string - file owner's avatar
+ *         created_at: number - file upload timestamp
+ *         }]
+ *      }
  * }
  */
 export const getIncomingApplyFiles = async (fileOwnerId: string, status:number = 0, pageNum: number, pageSize: number): Promise<unknown> => {
@@ -797,7 +833,7 @@ export const getIncomingApplyFiles = async (fileOwnerId: string, status:number =
     let result = await axios.post(getAgentBackendAddress() + '/apply/list', {
         file_owner_id: fileOwnerId, status: status, paginate: {page: pageNum, page_size: pageSize}, chain_id: _chainId
     })
-    return result.data
+    return result
 }
 
 /**
