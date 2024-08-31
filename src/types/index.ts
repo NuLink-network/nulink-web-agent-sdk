@@ -73,6 +73,7 @@ export type batchApproveRequestData = {
     dataStorageUrl: string[]
     userAccountIds: string []
     backupNodeNum:number[]
+    ursulaNum:number
     chainId: number
 }
 

@@ -509,6 +509,7 @@ export const approve = async (applyId:string,
     const _chainId = await getNetWorkChainId()
     const agentAccountAddress = userInfo.accountAddress;
     const agentAccountId = userInfo.accountId;
+    const _ursulaNum = await getUrsulaShareNumber();
     if (agentAccountAddress && agentAccountId) {
         const approveParam: batchApproveRequestData = {
             dataStorageUrl: [dataUrl],
@@ -524,6 +525,7 @@ export const approve = async (applyId:string,
             dataLabel: [dataName],
             userAccountIds: [applyUserId],
             backupNodeNum:[backupNodeNum],
+            ursulaNum: _ursulaNum,
             chainId: _chainId
         };
         window.open(getAgentAddress()+ "/approve?from=outside&data=" + encodeURIComponent(JSON.stringify(approveParam)));
@@ -851,6 +853,18 @@ export const getUrsulaNumber = async () => {
     let ursulaNum = stakingUrsulaNum > porterUrsulaNum?porterUrsulaNum:stakingUrsulaNum
     ursulaNum = Math.min(5,Math.floor(ursulaNum/5))
     ursulaNum = ursulaNum == 0?1:ursulaNum
+    return ursulaNum
+}
+
+const getUrsulaShareNumber = async () => {
+    let result = await axios.get(getStakingServiceAddress() + '/includeUrsula/getUrsulaNum')
+    let stakingUrsulaNum = 0
+    if (result['code'] == 0){
+        stakingUrsulaNum = result.data
+    }
+    let porterResult = await axios.post(getPorterServiceAddress() + '/include/ursulas', {})
+    let porterUrsulaNum = porterResult['result'].total;
+    let ursulaNum = stakingUrsulaNum > porterUrsulaNum?porterUrsulaNum:stakingUrsulaNum
     return ursulaNum
 }
 /**
